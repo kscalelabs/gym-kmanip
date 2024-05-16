@@ -1,5 +1,6 @@
+from collections import OrderedDict
 import os
-from typing import Tuple
+from typing import Dict, Tuple
 
 from gymnasium.envs.registration import register
 
@@ -11,73 +12,71 @@ ASSETS_DIR: str = os.path.join(os.path.dirname(__file__), "assets")
 FPS: int = 30
 CONTROL_TIMESTEP: float = 0.02  # ms
 
+Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 0.75
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 1.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 2.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_3_dof_x4"] = -2.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_1_dof_x4"] = 0.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_2_dof_x4"] = 0.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_3"] = 0.005
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_1"] = 0.005
 Q_SOLO_ARM_HOME: NDArray = np.array(
-    [
-        0.0,  # joint_right_arm_1_x8_1_dof_x8
-        0.75,  # joint_right_arm_1_x8_2_dof_x8
-        1.0,  # joint_right_arm_1_x6_1_dof_x6
-        1.0,  # joint_right_arm_1_x6_2_dof_x6
-        2.0,  # joint_right_arm_1_x4_1_dof_x4
-        -2.0,  # joint_right_arm_1_hand_right_1_x4_3_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_1_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_2_dof_x4
-        0.005,  # joint_right_arm_1_hand_right_1_slider_3
-        0.005,  # joint_right_arm_1_hand_right_1_slider_1
-    ],
-    dtype=np.float32,
-)
-Q_DUAL_ARM_HOME: NDArray = np.array(
-    [
-        0.0,  # joint_right_arm_1_x8_1_dof_x8
-        0.75,  # joint_right_arm_1_x8_2_dof_x8
-        1.0,  # joint_right_arm_1_x6_1_dof_x6
-        1.0,  # joint_right_arm_1_x6_2_dof_x6
-        2.0,  # joint_right_arm_1_x4_1_dof_x4
-        -2.7,  # joint_right_arm_1_hand_right_1_x4_3_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_1_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_2_dof_x4
-        0.005,  # joint_right_arm_1_hand_right_1_slider_3
-        0.005,  # joint_right_arm_1_hand_right_1_slider_1
-        # ----
-        0.0,  # joint_left_arm_1_x8_1_dof_x8
-        -0.75,  # joint_left_arm_1_x8_2_dof_x8
-        -1.0,  # joint_left_arm_1_x6_1_dof_x6
-        -1.0,  # joint_left_arm_1_x6_2_dof_x6
-        2.0,  # joint_left_arm_1_x4_1_dof_x4
-        0.0,  # joint_left_arm_1_hand_left_1_x4_3_dof_x4
-        0.0,  # joint_left_arm_1_hand_left_1_x4_1_dof_x4
-        0.0,  # joint_left_arm_1_hand_left_1_x4_2_dof_x4
-        0.005,  # joint_left_arm_1_hand_left_1_slider_3
-        0.005,  # joint_left_arm_1_hand_left_1_slider_1
-    ],
+    [v for v in Q_SOLO_ARM_HOME_DICT.values()],
     dtype=np.float32,
 )
 
+Q_DUAL_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 0.75
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 1.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 2.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_3_dof_x4"] = -2.7
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_1_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_2_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_3"] = 0.005
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_1"] = 0.005
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x8_1_dof_x8"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x8_2_dof_x8"] = -0.75
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x6_1_dof_x6"] = -1.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x6_2_dof_x6"] = -1.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x4_1_dof_x4"] = 2.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_x4_3_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_x4_1_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_x4_2_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_slider_3"] = 0.005
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_slider_1"] = 0.005
+Q_DUAL_ARM_HOME: NDArray = np.array(
+    [v for v in Q_DUAL_ARM_HOME_DICT.values()],
+    dtype=np.float32,
+)
+
+Q_FULL_BODY_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_FULL_BODY_HOME_DICT["joint_head_1_x4_1_dof_x4"] = -1.0
+Q_FULL_BODY_HOME_DICT["joint_head_1_x4_2_dof_x4"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 1.7
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 1.6
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 0.34
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.6
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 1.4
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_x4_1_dof_x4"] = -0.26
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_x4_2_dof_x4"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_slider_1"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_slider_2"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x8_1_dof_x8"] = -1.7
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x8_2_dof_x8"] = -1.6
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x6_1_dof_x6"] = -0.34
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x6_2_dof_x6"] = -1.6
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x4_1_dof_x4"] = -1.4
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_x4_1_dof_x4"] = -1.7
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_x4_2_dof_x4"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_slider_1"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_slider_2"] = 0.0
 Q_FULL_BODY_HOME: NDArray = np.array(
-    [
-        -1.0,  # joint_head_1_x4_1_dof_x4
-        0.0,  # joint_head_1_x4_2_dof_x4
-        # ----
-        1.7,  # joint_right_arm_1_x8_1_dof_x8
-        1.6,  # joint_right_arm_1_x8_2_dof_x8
-        0.34,  # joint_right_arm_1_x6_1_dof_x6
-        1.6,  # joint_right_arm_1_x6_2_dof_x6
-        1.4,  # joint_right_arm_1_x4_1_dof_x4
-        -0.26,  # joint_right_arm_1_hand_1_x4_1_dof_x4
-        0.0,  # joint_right_arm_1_hand_1_x4_2_dof_x4
-        0.0,  # joint_right_arm_1_hand_1_slider_1
-        0.0,  # joint_right_arm_1_hand_1_slider_2
-        # ----
-        -1.7,  # joint_left_arm_2_x8_1_dof_x8
-        -1.6,  # joint_left_arm_2_x8_2_dof_x8
-        -0.34,  # joint_left_arm_2_x6_1_dof_x6
-        -1.6,  # joint_left_arm_2_x6_2_dof_x6
-        -1.4,  # joint_left_arm_2_x4_1_dof_x4
-        -1.7,  # joint_left_arm_2_hand_1_x4_1_dof_x4
-        0.0,  # joint_left_arm_2_hand_1_x4_2_dof_x4
-        0.0,  # joint_left_arm_2_hand_1_slider_1
-        0.0,  # joint_left_arm_2_hand_1_slider_2
-    ],
+    [v for v in Q_FULL_BODY_HOME_DICT.values()],
     dtype=np.float32,
 )
 
