@@ -1,10 +1,9 @@
 import math
-
 from dm_control import viewer
 import gymnasium as gym
 import numpy as np
-
 import gym_kmanip as k
+from scipy.spatial.transform import Rotation as R
 
 # env_name = "KManipSoloArm"
 # env_name = "KManipSoloArmVision"
@@ -20,11 +19,13 @@ if "Solo" not in env_name:
     pos_l = env.unwrapped.mj_env.physics.data.mocap_pos[k.MOCAP_ID_L].copy()
 
 # TODO: try larger amplitudes, get a sense of the arm range
-AMPLITUDE_X: float = 0.08
-AMPLITUDE_Y: float = 0.08
-AMPLITUDE_Z: float = 0.04
-PERIOD: float = 0.5 * math.pi
-
+AMPLITUDE_X = 0.08
+AMPLITUDE_Y = 0.08
+AMPLITUDE_Z = 0.04
+PERIOD = 0.5 * math.pi
+X_ANGLE_AMPLITUDE = 0.4  # radians
+Y_ANGLE_AMPLITUDE = 0.4  # radians
+Z_ANGLE_AMPLITUDE = 0.6  # radians
 
 def policy(ts):
     action = env.action_space.sample()
@@ -37,7 +38,12 @@ def policy(ts):
                 pos_r[2] + AMPLITUDE_Z * math.sin(sim_time * PERIOD),
             ]
         )
-        action["eer_orn"] = np.array([1, 0, 0, 0])
+        # Oscillating quaternion
+        angle_x = X_ANGLE_AMPLITUDE * math.sin(sim_time * PERIOD)
+        angle_y = Y_ANGLE_AMPLITUDE * math.cos(sim_time * PERIOD)
+        angle_z = Z_ANGLE_AMPLITUDE * math.sin(sim_time * PERIOD)
+        rotation_quat = R.from_euler('xyz', [angle_x, angle_y, angle_z]).as_quat()
+        action["eer_orn"] = rotation_quat
         action["grip_r"] = math.sin(sim_time * PERIOD)
     if "eel_pos" in action:
         action["eel_pos"] = np.array(
@@ -47,9 +53,13 @@ def policy(ts):
                 pos_l[2] + AMPLITUDE_Z * math.sin(sim_time * PERIOD),
             ]
         )
-        action["eel_orn"] = np.array([1, 0, 0, 0])
+        # Oscillating quaternion
+        angle_x = X_ANGLE_AMPLITUDE * math.sin(sim_time * PERIOD)
+        angle_y = Y_ANGLE_AMPLITUDE * math.cos(sim_time * PERIOD)
+        angle_z = Z_ANGLE_AMPLITUDE * math.sin(sim_time * PERIOD)
+        rotation_quat = R.from_euler('xyz', [angle_x, angle_y, angle_z]).as_quat()
+        action["eel_orn"] = rotation_quat
         action["grip_l"] = math.sin(sim_time * PERIOD)
     return action
-
 
 viewer.launch(env.unwrapped.mj_env, policy=policy)
