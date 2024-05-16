@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 import rerun as rr
 from scipy.spatial.transform import Rotation as R
 from vuer import Vuer, VuerSession
-from vuer.schemas import Hands, ImageBackground, PointLight, Urdf
+from vuer.schemas import Box, Capsule, Hands, ImageBackground, PointLight, Sphere, Urdf
 
 import gym_kmanip as k
 
@@ -42,6 +42,12 @@ env_name = "KManipDualArm"
 # env_name = "KManipTorso"
 # env_name = "KManipTorsoVision"
 env = gym.make(env_name)
+
+env.unwrapped.mj_env.physics.data.body("cube").xpos
+env.unwrapped.mj_env.physics.data.mocap_pos[k.MOCAP_ID_R]
+env.unwrapped.mj_env.physics.data.mocap_quat[k.MOCAP_ID_R]
+env.unwrapped.mj_env.physics.data.mocap_pos[k.MOCAP_ID_L]
+env.unwrapped.mj_env.physics.data.mocap_quat[k.MOCAP_ID_L]
 
 # camera streaming is done throgh OpenCV
 IMAGE_WIDTH: int = 1280
@@ -202,10 +208,32 @@ async def hand_handler(event, _):
 async def main(session: VuerSession):
     session.upsert @ PointLight(intensity=VUER_LIGHT_INTENSITY, position=VUER_LIGHT_POS)
     session.upsert @ Hands(fps=HAND_FPS, stream=True, key="hands")
+    session.upsert @ Box(
+        args=[0.1, 0.1, 0.1, 101, 101, 101],
+        position=[0, 0.05, 0],
+        color="red",
+        materialType="standard",
+        material=dict(color="#23aaff"),
+        key="fox-1",
+    ),
+    # ee target indicator for right hand
+    session.upsert @ Sphere(
+
+    ),
+    session.upsert @ Capsule(
+        args=[0.05, 0.1, 101, 101],
+        position=[0, 0.05, 0],
+        color="blue",
+        materialType="standard",
+        material=dict(color="#23aaff"),
+        key="fox-2",
+    ),
+    # ee target indicator for left hand
+
     await asyncio.sleep(0.1)
     session.upsert @ Urdf(
         src=URDF_WEB,
-        jointValues=START_Q,
+        jointValues=k.Q_FULL_BODY_HOME_DICT,
         position=START_POS_TRUNK_VUER,
         rotation=START_EUL_TRUNK_VUER,
         key="robot",

@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import os
-from typing import Dict, Tuple
+from typing import Tuple
 
 from gymnasium.envs.registration import register
 

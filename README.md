@@ -69,10 +69,9 @@ python gym_kmanip/examples/2_record_video.py
 
 🤗 [K-Scale HuggingFace Datasets](https://huggingface.co/kscalelabs)
 
-data is recorded via teleop, this requires separate dependencies
+data is recorded via teleop, this requires additional dependencies
 
 ```bash
-conda create --name gym-kscale-teleop --clone gym-kscale && conda activate gym-kscale-teleop
 pip install opencv-python==4.9.0.80
 pip install vuer==0.0.30
 pip install rerun-sdk==0.15.1

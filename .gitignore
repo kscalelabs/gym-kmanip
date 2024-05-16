@@ -5,6 +5,7 @@ __pycache__/
 
 # 3D files (for now)
 *.stl
+*.zip
 
 # Videos
 *.mp4
