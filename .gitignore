@@ -7,6 +7,9 @@ __pycache__/
 *.stl
 *.zip
 
+# datasets
+data/*
+
 # Videos
 *.mp4
 

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import time
+from datetime import datetime
 import math
 from typing import Dict
 import math
@@ -21,13 +22,9 @@ URDF_WEB: str = (
     "https://raw.githubusercontent.com/kscalelabs/webstompy/master/urdf/stompy_tiny_glb/robot.urdf"
 )
 
-# conversion between MuJoCo and Vuer axes
-MJ_TO_VUER_AXES: NDArray = np.array([0, 2, 1], dtype=np.uint8)
-MJ_TO_VUER_AXES_SIGN: NDArray = np.array([-1, 1, 1], dtype=np.int8)
-
-# umi dataset requires these values
+# dataset is recorded as a rerun replay
 DATASET_DIR: str = os.path.join(os.path.dirname(__file__), "data")
-DATASET_NAME: str = "test.zarr"
+DATASET_NAME: str = f"teleop_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 DATASET_OUTPUT_PATH = os.path.join(DATASET_DIR, DATASET_NAME)
 
 required_datasets = {
@@ -40,18 +37,26 @@ required_datasets = {
     "data/camera0_rgb",
 }
 
-# Vuer rendering params
-MAX_FPS: int = 60
-VUER_LIGHT_POS: NDArray = np.array([0, 2, 2])
-VUER_LIGHT_INTENSITY: float = 10.0
+# conversion functions between MuJoCo and Vuer axes
+MJ_TO_VUER_AXES: NDArray = np.array([0, 2, 1], dtype=np.uint8)
+MJ_TO_VUER_AXES_SIGN: NDArray = np.array([-1, 1, 1], dtype=np.int8)
 
-# Vuer hand tracking and pinch detection params
-HAND_FPS: int = 30
-INDEX_FINGER_ID: int = 9
-THUMB_FINGER_ID: int = 4
-MIDLE_FINGER_ID: int = 14
-PINCH_DIST_OPENED: float = 0.10  # 10cm
-PINCH_DIST_CLOSED: float = 0.01  # 1cm
+
+def mj2vuer_pos(pos: NDArray) -> NDArray:
+    return np.multiply(pos[MJ_TO_VUER_AXES], MJ_TO_VUER_AXES_SIGN)
+
+
+def mj2vuer_orn(orn: NDArray) -> NDArray:
+    return R.from_quat(orn).as_euler("xyz")
+
+
+def vuer2mj_pos(pos: NDArray) -> NDArray:
+    return np.multiply(pos[MJ_TO_VUER_AXES], MJ_TO_VUER_AXES_SIGN)
+
+
+def vuer2mj_orn(orn: NDArray) -> NDArray:
+    return R.from_euler("xyz", orn).as_quat()
+
 
 # env_name = "KManipSoloArm"
 # env_name = "KManipSoloArmVision"
@@ -112,12 +117,25 @@ async def run_env() -> None:
             action["eel_orn"] = eel_site_orn
             action["grip_l"] = grip_l
         global q
-        for i, val in enumerate(mj_data.qpos[:env.unwrapped.q_len]):
+        for i, val in enumerate(mj_data.qpos[: env.unwrapped.q_len]):
             joint_name = env.unwrapped.q_keys[i]
             q[joint_name] = val
         observation, reward, terminated, truncated, info = env.step(action)
     print(f"env step took {(time.time() - start_time) * 1000:.2f}ms")
 
+
+# Vuer rendering params
+MAX_FPS: int = 60
+VUER_LIGHT_POS: NDArray = np.array([0, 2, 2])
+VUER_LIGHT_INTENSITY: float = 10.0
+
+# Vuer hand tracking and pinch detection params
+HAND_FPS: int = 30
+INDEX_FINGER_ID: int = 9
+THUMB_FINGER_ID: int = 4
+MIDLE_FINGER_ID: int = 14
+PINCH_DIST_OPENED: float = 0.10  # 10cm
+PINCH_DIST_CLOSED: float = 0.01  # 1cm
 
 app = Vuer()
 
@@ -135,12 +153,14 @@ async def hand_handler(event, _):
         rmiddl_pos: NDArray = np.array(event.value["rightLandmarks"][MIDLE_FINGER_ID])
         rgrip_dist: float = np.linalg.norm(rthumb_pos - rmiddl_pos) / PINCH_DIST_OPENED
         # orientation is calculated from wrist rotation matrix
-        wrist_rotation: NDArray = np.array(event.value["rightHand"]).reshape(4, 4)[:3, :3]
+        wrist_rotation: NDArray = np.array(event.value["rightHand"])
+        wrist_rotation = wrist_rotation.reshape(4, 4)[:3, :3]
+        wrist_rotation = R.from_matrix(wrist_rotation).as_quat()
         async with async_lock:
             global eer_site_pos, eer_site_orn, grip_r
-            eer_site_pos = np.multiply(rthumb_pos[MJ_TO_VUER_AXES], MJ_TO_VUER_AXES_SIGN)
+            eer_site_pos = vuer2mj_pos(rmiddl_pos)
             print(f"goal_pos_eer {eer_site_pos}")
-            eer_site_orn = R.from_matrix(wrist_rotation).as_quat()
+            eer_site_orn = vuer2mj_orn(wrist_rotation)
             print(f"goal_orn_eer {eer_site_orn}")
             grip_r = rgrip_dist
             print(f"right gripper at {grip_r}")
@@ -155,12 +175,14 @@ async def hand_handler(event, _):
         lmiddl_pos: NDArray = np.array(event.value["leftLandmarks"][MIDLE_FINGER_ID])
         lgrip_dist: float = np.linalg.norm(lthumb_pos - lmiddl_pos) / PINCH_DIST_OPENED
         # orientation is calculated from wrist rotation matrix
-        wrist_rotation: NDArray = np.array(event.value["leftHand"]).reshape(4, 4)[:3, :3]
+        wrist_rotation: NDArray = np.array(event.value["leftHand"])
+        wrist_rotation = wrist_rotation.reshape(4, 4)[:3, :3]
+        wrist_rotation = R.from_matrix(wrist_rotation).as_quat()
         async with async_lock:
             global eel_site_pos, eel_site_orn, grip_l
-            eel_site_pos = np.multiply(lthumb_pos[MJ_TO_VUER_AXES], MJ_TO_VUER_AXES_SIGN)
+            eel_site_pos = vuer2mj_pos(lmiddl_pos)
             print(f"goal_pos_eel {eel_site_pos}")
-            eel_site_orn = R.from_matrix(wrist_rotation).as_quat()
+            eel_site_orn = vuer2mj_orn(wrist_rotation)
             print(f"goal_orn_eel {eel_site_orn}")
             grip_l = lgrip_dist
             print(f"left gripper at {grip_l}")
@@ -178,30 +200,30 @@ async def main(session: VuerSession):
     session.upsert @ Urdf(
         src=URDF_WEB,
         jointValues=env.unwrapped.q_dict,
-        position=robot_pos,
-        rotation=R.from_quat(robot_orn).as_euler('xyz'),
+        position=mj2vuer_pos(robot_pos),
+        rotation=mj2vuer_orn(robot_orn),
         key="robot",
     )
     session.upsert @ Box(
         args=cube_size,
-        position=cube_pos,
-        rotation=R.from_quat(cube_orn).as_euler('xyz'),
+        position=mj2vuer_pos(cube_pos),
+        rotation=mj2vuer_orn(cube_orn),
         materialType="standard",
         material=dict(color="#ff0000"),
         key="cube",
     )
     session.upsert @ Capsule(
         args=eer_site_size,
-        position=eer_site_pos,
-        rotation=R.from_quat(eer_site_orn).as_euler('xyz'),
+        position=mj2vuer_pos(eer_site_pos),
+        rotation=mj2vuer_orn(eer_site_orn),
         materialType="standard",
         material=dict(color="#0000ff"),
         key="eer-site",
     )
     session.upsert @ Capsule(
         args=eel_site_size,
-        position=eel_site_pos,
-        rotation=R.from_quat(eel_site_orn).as_euler('xyz'),
+        position=mj2vuer_pos(eel_site_pos),
+        rotation=mj2vuer_orn(eel_site_orn),
         materialType="standard",
         material=dict(color="#ff0000"),
         key="eel-site",
@@ -215,22 +237,22 @@ async def main(session: VuerSession):
         async with async_lock:
             session.upsert @ Urdf(
                 jointValues=q,
-                position=robot_pos,
-                rotation=R.from_quat(robot_orn).as_euler('xyz'),
+                position=mj2vuer_pos(robot_pos),
+                rotation=mj2vuer_orn(robot_orn),
                 key="robot",
             )
             session.upsert @ Box(
-                position=cube_pos,
-                rotation=R.from_quat(cube_orn).as_euler('xyz'),
+                position=mj2vuer_pos(cube_pos),
+                rotation=mj2vuer_orn(cube_orn),
                 key="cube",
             )
             session.upsert @ Capsule(
-                position=eer_site_pos,
-                rotation=R.from_quat(eer_site_orn).as_euler('xyz'),
+                position=mj2vuer_pos(eer_site_pos),
+                rotation=mj2vuer_orn(eer_site_orn),
                 key="eer-site",
             )
             session.upsert @ Capsule(
-                position=eel_site_pos,
-                rotation=R.from_quat(eel_site_orn).as_euler('xyz'),
+                position=mj2vuer_pos(eel_site_pos),
+                rotation=mj2vuer_orn(eel_site_orn),
                 key="eel-site",
             )
