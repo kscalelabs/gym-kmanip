@@ -18,7 +18,7 @@
     <p>K-Scale Manipulation Suite</p>
 </h1>
 
-#### Gymnasium Environments
+## Gymnasium+MuJoCo Environments
 
 <table>
   <tr>
@@ -27,11 +27,12 @@
     <td><img src="assets/full_body.png" width="100%" alt="KManipTorso Env"/></td>
   </tr>
   <tr>
-    <td align="center">KManipSoloArm environment has one 7dof arm with a parallel jaw gripper. KManipSoloArmVision has a gripper cam and stationary overhead cam.</td>
-    <td align="center">KManipDualArm environment has two 7dof arms with parallel jaw grippers. KManipDualArmVision has gripper cams and stationary overhead cams.</td>
-    <td align="center">KManipTorso environment has a 2dof head with two 7dof arms and a parallel jaw gripper. KManipTorsoVision has a gripper cam and stationary overhead cam.</td>
+    <td align="center"><b>KManipSoloArm</b> environment has one 7dof arm with a 1dof gripper. <b>KManipSoloArmVision</b> has a gripper cam, a head cam, and an overhead cam.</td>
+    <td align="center"><b>KManipDualArm</b> environment has two 7dof arms with 1dof grippers. <b>KManipDualArmVision</b> has 2 gripper cams, a head cam, and an overhead cam.</td>
+    <td align="center"><b>KManipTorso</b> environment has a 2dof head, two 6dof arms with 1dof grippers. <b>KManipTorsoVision</b> has 2 gripper cams, a head cam, and an overhead cam.</td>
   </tr>
 </table>
+
 
 ## Installation
 
