@@ -1,0 +1,7 @@
+<!-- template is used when importing a new robot -->
+<mujocoinclude>
+    <!-- fill in the body here -->
+    <!-- make sure joints defined in body have limited="true" -->
+    <!-- remove joint property "actuatorfrcrange" -->
+    <!-- remove the pos and quat of the arm body root-->
+</mujocoinclude>

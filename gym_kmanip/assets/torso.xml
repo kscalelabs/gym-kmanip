@@ -1,0 +1,136 @@
+<mujocoinclude>
+    <compiler angle="radian" meshdir="meshes" />
+    <asset>
+        <mesh name="torso_1_top_torso_1" file="torso_1_top_torso_1.stl" />
+        <mesh name="head_1_x4_1_pcb_1" file="head_1_x4_1_pcb_1.stl" />
+        <mesh name="right_arm_1_x8_1_outer_1" file="right_arm_1_x8_1_outer_1.stl" />
+        <mesh name="left_arm_2_x8_1_outer_1" file="left_arm_2_x8_1_outer_1.stl" />
+        <mesh name="torso_1_bottom_torso_1" file="torso_1_bottom_torso_1.stl" />
+        <mesh name="torso_1_top_back_1" file="torso_1_top_back_1.stl" />
+        <mesh name="head_1_x4_1_outer_1" file="head_1_x4_1_outer_1.stl" />
+        <mesh name="right_arm_1_x8_1_inner_1" file="right_arm_1_x8_1_inner_1.stl" />
+        <mesh name="right_arm_1_x8_1_pcb_1" file="right_arm_1_x8_1_pcb_1.stl" />
+        <mesh name="left_arm_2_x8_1_inner_1" file="left_arm_2_x8_1_inner_1.stl" />
+        <mesh name="left_arm_2_x8_1_pcb_1" file="left_arm_2_x8_1_pcb_1.stl" />
+        <mesh name="torso_1_bottom_back_1" file="torso_1_bottom_back_1.stl" />
+        <mesh name="torso_1_x8_1_outer_1" file="torso_1_x8_1_outer_1.stl" />
+        <mesh name="torso_1_mock_agx_orin_1" file="torso_1_mock_agx_orin_1.stl" />
+        <mesh name="torso_1_breadboard_1" file="torso_1_breadboard_1.stl" />
+        <mesh name="torso_1_battery_mount_1" file="torso_1_battery_mount_1.stl" />
+        <mesh name="head_1_x4_1_inner_1" file="head_1_x4_1_inner_1.stl" />
+        <mesh name="right_arm_1_shoulder_inner_1" file="right_arm_1_shoulder_inner_1.stl" />
+        <mesh name="left_arm_2_shoulder_inner_1" file="left_arm_2_shoulder_inner_1.stl" />
+        <mesh name="torso_1_x8_1_inner_1" file="torso_1_x8_1_inner_1.stl" />
+        <mesh name="torso_1_x8_1_pcb_1" file="torso_1_x8_1_pcb_1.stl" />
+        <mesh name="torso_1_accelerometer_1" file="torso_1_accelerometer_1.stl" />
+        <mesh name="torso_1_battery_1" file="torso_1_battery_1.stl" />
+        <mesh name="head_1_neck_1" file="head_1_neck_1.stl" />
+        <mesh name="right_arm_1_x8_2_outer_1" file="right_arm_1_x8_2_outer_1.stl" />
+        <mesh name="left_arm_2_x8_2_outer_1" file="left_arm_2_x8_2_outer_1.stl" />
+        <mesh name="head_1_x4_2_pcb_1" file="head_1_x4_2_pcb_1.stl" />
+        <mesh name="right_arm_1_x8_2_inner_1" file="right_arm_1_x8_2_inner_1.stl" />
+        <mesh name="right_arm_1_x8_2_pcb_1" file="right_arm_1_x8_2_pcb_1.stl" />
+        <mesh name="left_arm_2_x8_2_inner_1" file="left_arm_2_x8_2_inner_1.stl" />
+        <mesh name="left_arm_2_x8_2_pcb_1" file="left_arm_2_x8_2_pcb_1.stl" />
+        <mesh name="head_1_x4_2_outer_1" file="head_1_x4_2_outer_1.stl" />
+        <mesh name="right_arm_1_shoulder_nontorso_1" file="right_arm_1_shoulder_nontorso_1.stl" />
+        <mesh name="left_arm_2_shoulder_nontorso_1" file="left_arm_2_shoulder_nontorso_1.stl" />
+        <mesh name="head_1_x4_2_inner_1" file="head_1_x4_2_inner_1.stl" />
+        <mesh name="right_arm_1_x6_1_outer_1" file="right_arm_1_x6_1_outer_1.stl" />
+        <mesh name="left_arm_2_x6_1_outer_1" file="left_arm_2_x6_1_outer_1.stl" />
+        <mesh name="head_1_head_1" file="head_1_head_1.stl" />
+        <mesh name="right_arm_1_x6_1_inner_1" file="right_arm_1_x6_1_inner_1.stl" />
+        <mesh name="right_arm_1_x6_1_pcb_1" file="right_arm_1_x6_1_pcb_1.stl" />
+        <mesh name="left_arm_2_x6_1_inner_1" file="left_arm_2_x6_1_inner_1.stl" />
+        <mesh name="left_arm_2_x6_1_pcb_1" file="left_arm_2_x6_1_pcb_1.stl" />
+        <mesh name="head_1_eye_1" file="head_1_eye_1.stl" />
+        <mesh name="head_1_eye_2" file="head_1_eye_2.stl" />
+        <mesh name="head_1_backplate_1" file="head_1_backplate_1.stl" />
+        <mesh name="right_arm_1_elbow_1" file="right_arm_1_elbow_1.stl" />
+        <mesh name="left_arm_2_elbow_1" file="left_arm_2_elbow_1.stl" />
+        <mesh name="head_1_ardu_cam_mount_1" file="head_1_ardu_cam_mount_1.stl" />
+        <mesh name="head_1_ardu_cam_mount_2" file="head_1_ardu_cam_mount_2.stl" />
+        <mesh name="head_1_arducam_case_1" file="head_1_arducam_case_1.stl" />
+        <mesh name="head_1_xpt2046_touch_1" file="head_1_xpt2046_touch_1.stl" />
+        <mesh name="right_arm_1_x6_2_outer_1" file="right_arm_1_x6_2_outer_1.stl" />
+        <mesh name="left_arm_2_x6_2_outer_1" file="left_arm_2_x6_2_outer_1.stl" />
+        <mesh name="head_1_arducam_no_case_1" file="head_1_arducam_no_case_1.stl" />
+        <mesh name="head_1_lcd_2" file="head_1_lcd_2.stl" />
+        <mesh name="head_1_arducam_no_case_2" file="head_1_arducam_no_case_2.stl" />
+        <mesh name="head_1_lcd_1" file="head_1_lcd_1.stl" />
+        <mesh name="right_arm_1_x6_2_inner_1" file="right_arm_1_x6_2_inner_1.stl" />
+        <mesh name="right_arm_1_x6_2_pcb_1" file="right_arm_1_x6_2_pcb_1.stl" />
+        <mesh name="left_arm_2_x6_2_inner_1" file="left_arm_2_x6_2_inner_1.stl" />
+        <mesh name="left_arm_2_x6_2_pcb_1" file="left_arm_2_x6_2_pcb_1.stl" />
+        <mesh name="right_arm_1_forearm_1" file="right_arm_1_forearm_1.stl" />
+        <mesh name="left_arm_2_forearm_1" file="left_arm_2_forearm_1.stl" />
+        <mesh name="right_arm_1_x4_1_pcb_1" file="right_arm_1_x4_1_pcb_1.stl" />
+        <mesh name="left_arm_2_x4_1_pcb_1" file="left_arm_2_x4_1_pcb_1.stl" />
+        <mesh name="right_arm_1_x4_1_outer_1" file="right_arm_1_x4_1_outer_1.stl" />
+        <mesh name="left_arm_2_x4_1_outer_1" file="left_arm_2_x4_1_outer_1.stl" />
+        <mesh name="right_arm_1_x4_1_inner_1" file="right_arm_1_x4_1_inner_1.stl" />
+        <mesh name="left_arm_2_x4_1_inner_1" file="left_arm_2_x4_1_inner_1.stl" />
+        <mesh name="right_arm_1_hand_1_wrist_1" file="right_arm_1_hand_1_wrist_1.stl" />
+        <mesh name="left_arm_2_hand_1_wrist_1" file="left_arm_2_hand_1_wrist_1.stl" />
+        <mesh name="right_arm_1_hand_1_x4_1_pcb_1" file="right_arm_1_hand_1_x4_1_pcb_1.stl" />
+        <mesh name="left_arm_2_hand_1_x4_1_pcb_1" file="left_arm_2_hand_1_x4_1_pcb_1.stl" />
+        <mesh name="right_arm_1_hand_1_x4_1_outer_1" file="right_arm_1_hand_1_x4_1_outer_1.stl" />
+        <mesh name="left_arm_2_hand_1_x4_1_outer_1" file="left_arm_2_hand_1_x4_1_outer_1.stl" />
+        <mesh name="right_arm_1_hand_1_x4_1_inner_1" file="right_arm_1_hand_1_x4_1_inner_1.stl" />
+        <mesh name="left_arm_2_hand_1_x4_1_inner_1" file="left_arm_2_hand_1_x4_1_inner_1.stl" />
+        <mesh name="right_arm_1_hand_1_mount_1" file="right_arm_1_hand_1_mount_1.stl" />
+        <mesh name="left_arm_2_hand_1_mount_1" file="left_arm_2_hand_1_mount_1.stl" />
+        <mesh name="right_arm_1_hand_1_base_1" file="right_arm_1_hand_1_base_1.stl" />
+        <mesh name="right_arm_1_hand_1_x4_2_pcb_1" file="right_arm_1_hand_1_x4_2_pcb_1.stl" />
+        <mesh name="left_arm_2_hand_1_base_1" file="left_arm_2_hand_1_base_1.stl" />
+        <mesh name="left_arm_2_hand_1_x4_2_pcb_1" file="left_arm_2_hand_1_x4_2_pcb_1.stl" />
+        <mesh name="right_arm_1_hand_1_slide_rail_1" file="right_arm_1_hand_1_slide_rail_1.stl" />
+        <mesh name="right_arm_1_hand_1_slide_1" file="right_arm_1_hand_1_slide_1.stl" />
+        <mesh name="right_arm_1_hand_1_slide_2" file="right_arm_1_hand_1_slide_2.stl" />
+        <mesh name="right_arm_1_hand_1_camera_mount_1" file="right_arm_1_hand_1_camera_mount_1.stl" />
+        <mesh name="right_arm_1_hand_1_x4_2_outer_1" file="right_arm_1_hand_1_x4_2_outer_1.stl" />
+        <mesh name="left_arm_2_hand_1_slide_rail_1" file="left_arm_2_hand_1_slide_rail_1.stl" />
+        <mesh name="left_arm_2_hand_1_slide_1" file="left_arm_2_hand_1_slide_1.stl" />
+        <mesh name="left_arm_2_hand_1_slide_2" file="left_arm_2_hand_1_slide_2.stl" />
+        <mesh name="left_arm_2_hand_1_camera_mount_1" file="left_arm_2_hand_1_camera_mount_1.stl" />
+        <mesh name="left_arm_2_hand_1_x4_2_outer_1" file="left_arm_2_hand_1_x4_2_outer_1.stl" />
+        <mesh name="right_arm_1_hand_1_rack_2" file="right_arm_1_hand_1_rack_2.stl" />
+        <mesh name="right_arm_1_hand_1_rack_1" file="right_arm_1_hand_1_rack_1.stl" />
+        <mesh name="right_arm_1_hand_1_arducam_case_1" file="right_arm_1_hand_1_arducam_case_1.stl" />
+        <mesh name="right_arm_1_hand_1_x4_2_inner_1" file="right_arm_1_hand_1_x4_2_inner_1.stl" />
+        <mesh name="left_arm_2_hand_1_rack_2" file="left_arm_2_hand_1_rack_2.stl" />
+        <mesh name="left_arm_2_hand_1_rack_1" file="left_arm_2_hand_1_rack_1.stl" />
+        <mesh name="left_arm_2_hand_1_arducam_case_1" file="left_arm_2_hand_1_arducam_case_1.stl" />
+        <mesh name="left_arm_2_hand_1_x4_2_inner_1" file="left_arm_2_hand_1_x4_2_inner_1.stl" />
+        <mesh name="right_arm_1_hand_1_gripper_1" file="right_arm_1_hand_1_gripper_1.stl" />
+        <mesh name="right_arm_1_hand_1_gripper_2" file="right_arm_1_hand_1_gripper_2.stl" />
+        <mesh name="right_arm_1_hand_1_spur_gear_(26_teeth)_1" file="right_arm_1_hand_1_spur_gear_(26_teeth)_1.stl" />
+        <mesh name="left_arm_2_hand_1_gripper_1" file="left_arm_2_hand_1_gripper_1.stl" />
+        <mesh name="left_arm_2_hand_1_gripper_2" file="left_arm_2_hand_1_gripper_2.stl" />
+        <mesh name="left_arm_2_hand_1_spur_gear_(26_teeth)_1" file="left_arm_2_hand_1_spur_gear_(26_teeth)_1.stl" />
+    </asset>
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-2.0944 2.0944" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x8_1_dof_x8"/>
+        <position ctrllimited="true" ctrlrange="0 1.91986" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x8_2_dof_x8"/>
+        <position ctrllimited="true" ctrlrange="-1.0472 3.66519" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x6_1_dof_x6"/>
+        <position ctrllimited="true" ctrlrange="-1.5708 1.5708" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x6_2_dof_x6"/>
+        <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x4_1_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-2.61799 0.523599" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_1_x4_1_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_1_x4_2_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-0.034 0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_1_slider_1"/>
+        <position ctrllimited="true" ctrlrange="-0.034 0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_1_slider_2"/>
+
+        <position ctrllimited="true" ctrlrange="-1.5708 1.5708" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x8_1_dof_x8"/>
+        <position ctrllimited="true" ctrlrange="-1.91986 0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x8_2_dof_x8"/>
+        <position ctrllimited="true" ctrlrange="-3.66519 1.0472" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x6_1_dof_x6"/>
+        <position ctrllimited="true" ctrlrange="-1.5708 1.5708" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x6_2_dof_x6"/>
+        <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x4_1_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-2.61799 0.523599" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_1_x4_1_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_1_x4_2_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-0.034 0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_1_slider_1"/>
+        <position ctrllimited="true" ctrlrange="-0.034 0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_1_slider_2"/>
+
+        <position ctrllimited="true" ctrlrange="-2.51327 0.628319" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_head_1_x4_1_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-1.5708 0.261799" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_head_1_x4_2_dof_x4"/>
+    </actuator>
+</mujocoinclude>

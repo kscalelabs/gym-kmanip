@@ -1,0 +1,58 @@
+<!-- template is used when importing a new robot -->
+<mujocoinclude>
+    <compiler angle="radian" meshdir="meshes" />
+    <asset>
+        <mesh name="left_arm_2_x8_1_outer_1" file="left_arm_2_x8_1_outer_1.stl" />
+        <mesh name="left_arm_2_x8_1_inner_1" file="left_arm_2_x8_1_inner_1.stl" />
+        <mesh name="left_arm_2_x8_1_pcb_1" file="left_arm_2_x8_1_pcb_1.stl" />
+        <mesh name="left_arm_2_shoulder_inner_1" file="left_arm_2_shoulder_inner_1.stl" />
+        <mesh name="left_arm_2_x8_2_outer_1" file="left_arm_2_x8_2_outer_1.stl" />
+        <mesh name="left_arm_2_x8_2_inner_1" file="left_arm_2_x8_2_inner_1.stl" />
+        <mesh name="left_arm_2_x8_2_pcb_1" file="left_arm_2_x8_2_pcb_1.stl" />
+        <mesh name="left_arm_2_shoulder_nontorso_1" file="left_arm_2_shoulder_nontorso_1.stl" />
+        <mesh name="left_arm_2_x6_1_outer_1" file="left_arm_2_x6_1_outer_1.stl" />
+        <mesh name="left_arm_2_x6_1_inner_1" file="left_arm_2_x6_1_inner_1.stl" />
+        <mesh name="left_arm_2_x6_1_pcb_1" file="left_arm_2_x6_1_pcb_1.stl" />
+        <mesh name="left_arm_2_elbow_1" file="left_arm_2_elbow_1.stl" />
+        <mesh name="left_arm_2_x6_2_outer_1" file="left_arm_2_x6_2_outer_1.stl" />
+        <mesh name="left_arm_2_elbow_case_1" file="left_arm_2_elbow_case_1.stl" />
+        <mesh name="left_arm_2_x6_2_inner_1" file="left_arm_2_x6_2_inner_1.stl" />
+        <mesh name="left_arm_2_x6_2_pcb_1" file="left_arm_2_x6_2_pcb_1.stl" />
+        <mesh name="left_arm_2_forearm_1" file="left_arm_2_forearm_1.stl" />
+        <mesh name="left_arm_2_x4_1_pcb_1" file="left_arm_2_x4_1_pcb_1.stl" />
+        <mesh name="left_arm_2_x4_1_outer_1" file="left_arm_2_x4_1_outer_1.stl" />
+        <mesh name="left_arm_2_x4_1_inner_1" file="left_arm_2_x4_1_inner_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_wrist_pitch_left_1" file="left_arm_2_hand_left_1_wrist_pitch_left_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_3_pcb_1" file="left_arm_2_hand_left_1_x4_3_pcb_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_3_outer_1" file="left_arm_2_hand_left_1_x4_3_outer_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_3_inner_1" file="left_arm_2_hand_left_1_x4_3_inner_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_wrist_yaw_1" file="left_arm_2_hand_left_1_wrist_yaw_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_1_pcb_1" file="left_arm_2_hand_left_1_x4_1_pcb_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_1_outer_1" file="left_arm_2_hand_left_1_x4_1_outer_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_1_inner_1" file="left_arm_2_hand_left_1_x4_1_inner_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_twist_mount_1" file="left_arm_2_hand_left_1_twist_mount_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_2_pcb_1" file="left_arm_2_hand_left_1_x4_2_pcb_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_base_attachment_1" file="left_arm_2_hand_left_1_base_attachment_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_2_outer_1" file="left_arm_2_hand_left_1_x4_2_outer_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_slide_rail_1" file="left_arm_2_hand_left_1_slide_rail_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_x4_2_inner_1" file="left_arm_2_hand_left_1_x4_2_inner_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_slide_2" file="left_arm_2_hand_left_1_slide_2.stl" />
+        <mesh name="left_arm_2_hand_left_1_slide_1" file="left_arm_2_hand_left_1_slide_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_rack_2" file="left_arm_2_hand_left_1_rack_2.stl" />
+        <mesh name="left_arm_2_hand_left_1_rack_1" file="left_arm_2_hand_left_1_rack_1.stl" />
+        <mesh name="left_arm_2_hand_left_1_gripper_2" file="left_arm_2_hand_left_1_gripper_2.stl" />
+        <mesh name="left_arm_2_hand_left_1_gripper_1" file="left_arm_2_hand_left_1_gripper_1.stl" />
+    </asset>
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1.5708 1.5708" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x8_1_dof_x8"/>
+        <position ctrllimited="true" ctrlrange="-1.91986 0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x8_2_dof_x8"/>
+        <position ctrllimited="true" ctrlrange="-3.66519 1.0472" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x6_1_dof_x6"/>
+        <position ctrllimited="true" ctrlrange="-1.5708 1.5708" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x6_2_dof_x6"/>
+        <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_x4_1_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-4.36332 1.74533" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_left_1_x4_3_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-3.49066 3.49066" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_left_1_x4_1_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_left_1_x4_2_dof_x4"/>
+        <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_left_1_slider_3"/>
+        <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_left_arm_2_hand_left_1_slider_1"/>
+    </actuator>
+</mujocoinclude>

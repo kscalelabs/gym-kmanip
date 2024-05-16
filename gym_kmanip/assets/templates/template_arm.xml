@@ -1,0 +1,20 @@
+<!-- template is used when importing a new robot -->
+<mujocoinclude>
+    <compiler angle="radian" meshdir="meshes" />
+    <asset>
+        <!-- fill in the meshes here -->
+    </asset>
+    <actuator>
+        <!-- update these actuators with ctrlrange and joint names -->
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+        <position ctrllimited="true" ctrlrange="0.0 0.0" kp="100"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_..."/>
+    </actuator>
+</mujocoinclude>

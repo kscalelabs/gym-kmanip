@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "gym-kmanip"
+version = "0.0.1"
+description = "K-Scale Gymnasium Environment for Manipulation Tasks"
+authors = ["Hugo Ponte <hu.po.xyz@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/kscale/gym-kmanip"
+packages = [
+    { include = "gym_kmanip" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+mujoco = "^2.3.7"
+gymnasium = ">=0.29.1"
+dm-control = ">=1.0.14"
+imageio = {extras = ["ffmpeg"], version = ">=2.34.0"}
+pre-commit = {version = ">=3.7.0", optional = true}
+debugpy = {version = ">=1.8.1", optional = true}
+pytest = {version = ">=8.1.0", optional = true}
+pytest-cov = {version = ">=5.0.0", optional = true}
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
