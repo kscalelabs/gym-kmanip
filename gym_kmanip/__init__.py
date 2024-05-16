@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import os
-from typing import Tuple
+from typing import List, Tuple
 
 from gymnasium.envs.registration import register
 
@@ -27,6 +27,7 @@ Q_SOLO_ARM_HOME: NDArray = np.array(
     [v for v in Q_SOLO_ARM_HOME_DICT.values()],
     dtype=np.float32,
 )
+Q_SOLO_ARM_KEYS: List[str] = list(Q_SOLO_ARM_HOME_DICT.keys())
 
 Q_DUAL_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
 Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
@@ -53,6 +54,7 @@ Q_DUAL_ARM_HOME: NDArray = np.array(
     [v for v in Q_DUAL_ARM_HOME_DICT.values()],
     dtype=np.float32,
 )
+Q_DUAL_ARM_KEYS: List[str] = list(Q_DUAL_ARM_HOME_DICT.keys())
 
 Q_FULL_BODY_HOME_DICT: OrderedDict[str, float] = OrderedDict()
 Q_FULL_BODY_HOME_DICT["joint_head_1_x4_1_dof_x4"] = -1.0
@@ -79,6 +81,7 @@ Q_FULL_BODY_HOME: NDArray = np.array(
     [v for v in Q_FULL_BODY_HOME_DICT.values()],
     dtype=np.float32,
 )
+Q_FULL_BODY_KEYS: List[str] = list(Q_FULL_BODY_HOME_DICT.keys())
 
 # IK joint masks (computed separately for each arm)
 Q_MASK_R: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
@@ -147,6 +150,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_SOLO_ARM_HOME,
+        "q_dict": Q_SOLO_ARM_HOME_DICT,
+        "q_keys": Q_SOLO_ARM_KEYS,
     },
 )
 
@@ -169,6 +174,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_SOLO_ARM_HOME,
+        "q_dict": Q_SOLO_ARM_HOME_DICT,
+        "q_keys": Q_SOLO_ARM_KEYS,
     },
 )
 
@@ -192,6 +199,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_DUAL_ARM_HOME,
+        "q_dict": Q_DUAL_ARM_HOME_DICT,
+        "q_keys": Q_DUAL_ARM_KEYS,
     },
 )
 
@@ -218,6 +227,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_DUAL_ARM_HOME,
+        "q_dict": Q_DUAL_ARM_HOME_DICT,
+        "q_keys": Q_DUAL_ARM_KEYS,
     },
 )
 
@@ -241,6 +252,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_FULL_BODY_HOME,
+        "q_dict": Q_FULL_BODY_HOME_DICT,
+        "q_keys": Q_FULL_BODY_KEYS,
     },
 )
 
@@ -267,5 +280,7 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_FULL_BODY_HOME,
+        "q_dict": Q_FULL_BODY_HOME_DICT,
+        "q_keys": Q_FULL_BODY_KEYS,
     },
 )

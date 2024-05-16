@@ -173,19 +173,23 @@ class KManipEnv(gym.Env):
             "grip_r",  # right gripper
         ],
         q_home: NDArray = None,
+        q_dict: OrderedDict[str, float] = None,
+        q_keys: List[str] = None,
     ):
         super().__init__()
         self.render_mode: str = render_mode
         self.seed: int = seed
         self.q_home: NDArray = q_home
         self.q_len: int = len(q_home)
+        # joint dictionaries and keys are needed for teleop
+        self.q_dict: OrderedDict[str, float] = q_dict
+        self.q_keys: List[str] = q_keys
         # create dm_control task
         self.mj_env = control.Environment(
             mujoco.Physics.from_xml_path(os.path.join(k.ASSETS_DIR, xml_filename)),
             KManipTask(self, random=seed),
             control_timestep=k.CONTROL_TIMESTEP,
         )
-
         # observation space
         self.obs_list = obs_list
         _obs_dict: OrderedDict[str, spaces.Space] = OrderedDict()
