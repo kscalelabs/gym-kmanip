@@ -233,7 +233,7 @@ class KManipEnv(gym.Env):
             )
             if self.log:
                 rr.log(
-                    "world/camera/top",
+                    "world/cam_top",
                     rr.Pinhole(
                         resolution=[k.CAM_TOP_IMG_WIDTH, k.CAM_TOP_IMG_HEIGHT],
                         focal_length=k.CAM_TOP_FOCAL_LENGTH,
@@ -248,7 +248,7 @@ class KManipEnv(gym.Env):
             )
             if self.log:
                 rr.log(
-                    "world/camera/head",
+                    "world/cam_head",
                     rr.Pinhole(
                         resolution=[k.CAM_HEAD_IMG_WIDTH, k.CAM_HEAD_IMG_HEIGHT],
                         focal_length=k.CAM_HEAD_FOCAL_LENGTH,
@@ -263,7 +263,7 @@ class KManipEnv(gym.Env):
             )
             if self.log:
                 rr.log(
-                    "world/camera/grip_l",
+                    "world/cam_grip_l",
                     rr.Pinhole(
                         resolution=[k.CAM_GRIP_IMG_WIDTH, k.CAM_GRIP_IMG_HEIGHT],
                         focal_length=k.CAM_GRIP_FOCAL_LENGTH,
@@ -278,7 +278,7 @@ class KManipEnv(gym.Env):
             )
             if self.log:
                 rr.log(
-                    "world/camera/grip_r",
+                    "world/cam_grip_r",
                     rr.Pinhole(
                         resolution=[k.CAM_GRIP_IMG_WIDTH, k.CAM_GRIP_IMG_HEIGHT],
                         focal_length=k.CAM_GRIP_FOCAL_LENGTH,
@@ -378,11 +378,11 @@ class KManipEnv(gym.Env):
                 ),
             )
             if "cam_top" in self.obs_list:
-                pos = self.mj_env.physics.data.camera("head").xpos.copy()
-                orn = self.mj_env.physics.data.camera("head").xmat.copy()
-                rr.log("camera/top",rr.Image(ts.observation["cam_top"]))
+                pos = self.mj_env.physics.data.camera("top").xpos.copy()
+                orn = self.mj_env.physics.data.camera("top").xmat.copy()
+                rr.log("camera/cam_top",rr.Image(ts.observation["cam_top"]))
                 rr.log(
-                    "camera/top_pos",
+                    "world/cam_top",
                     rr.Transform3D(
                         translation=pos,
                     ),
@@ -390,29 +390,29 @@ class KManipEnv(gym.Env):
             if "cam_head" in self.obs_list:
                 pos = self.mj_env.physics.data.camera("head").xpos.copy()
                 orn = self.mj_env.physics.data.camera("head").xmat.copy()
-                rr.log("camera/head",rr.Image(ts.observation["cam_head"]))
+                rr.log("camera/cam_head",rr.Image(ts.observation["cam_head"]))
                 rr.log(
-                    "camera/head_pos",
+                    "world/cam_head",
                     rr.Transform3D(
                         translation=pos,
                     ),
                 )
             if "cam_grip_l" in self.obs_list:
                 pos = self.mj_env.physics.data.camera("grip_l").xpos.copy()
-                orn = self.mj_env.physics.data.camera("head").xmat.copy()
-                rr.log("camera/grip_l",rr.Image(ts.observation["cam_grip_l"]))
+                orn = self.mj_env.physics.data.camera("grip_l").xmat.copy()
+                rr.log("camera/cam_grip_l",rr.Image(ts.observation["cam_grip_l"]))
                 rr.log(
-                    "camera/grip_l_pos",
+                    "world/cam_grip_l",
                     rr.Transform3D(
                         translation=pos,
                     ),
                 )
             if "cam_grip_r" in self.obs_list:
                 pos = self.mj_env.physics.data.camera("grip_r").xpos.copy()
-                orn = self.mj_env.physics.data.camera("head").xmat.copy()
-                rr.log("camera/grip_r",rr.Image(ts.observation["cam_grip_r"]))
+                orn = self.mj_env.physics.data.camera("grip_r").xmat.copy()
+                rr.log("camera/cam_grip_r",rr.Image(ts.observation["cam_grip_r"]))
                 rr.log(
-                    "camera/grip_r_pos",
+                    "world/cam_grip_r",
                     rr.Transform3D(
                         translation=pos,
                     ),
