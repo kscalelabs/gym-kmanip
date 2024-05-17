@@ -1,7 +1,8 @@
 from typing import List
 
-import rerun as rr
 import rerun.blueprint as rrb
+
+import gym_kmanip as k
 
 
 def make_blueprint(
@@ -27,10 +28,11 @@ def make_blueprint(
             rrb.TimeSeriesView(origin="/action", name="grip_l"),
         )
     camera_views: List[rrb.SpaceView] = []
-    for name in obs_list:
-        if "cam" in name:
+    for obs_name in obs_list:
+        if "camera" in obs_name:
+            cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
             camera_views.append(
-                rrb.Spatial2DView(origin=f"/camera/{name}", name=name),
+                rrb.Spatial2DView(origin=f"/camera/{cam.name}", name=cam.name),
             )
     blueprint = rrb.Blueprint(
         rrb.Horizontal(

@@ -74,7 +74,7 @@ data is recorded via teleop, this requires additional dependencies
 ```bash
 pip install opencv-python==4.9.0.80
 pip install vuer==0.0.30
-pip install rerun-sdk==0.15.1
+pip install rerun-sdk==0.16.0
 ```
 
 start the server on the robot computer

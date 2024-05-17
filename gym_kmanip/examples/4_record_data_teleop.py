@@ -2,7 +2,6 @@ import asyncio
 import time
 from typing import Dict
 
-from dm_control import viewer
 import gymnasium as gym
 import numpy as np
 from numpy.typing import NDArray
@@ -22,7 +21,6 @@ ENV_NAME: str = "KManipTorso"
 env = gym.make(ENV_NAME)
 mj_data = env.unwrapped.mj_env.physics.data
 mj_model = env.unwrapped.mj_env.physics.model
-# viewer.launch(env.unwrapped.mj_env)
 env.reset()
 
 # is this environment bimanual?
@@ -46,29 +44,6 @@ if "Torso" in ENV_NAME:
 URDF_LINK: str = (
     f"https://raw.githubusercontent.com/kscalelabs/webstompy/master/urdf/{URDF_NAME}/robot.urdf"
 )
-
-# conversion functions between MuJoCo and Vuer axes
-MJ_TO_VUER_ROT: R = R.from_euler("z", np.pi) * R.from_euler("x", np.pi / 2)
-VUER_TO_MJ_ROT: R = MJ_TO_VUER_ROT.inv()
-
-
-def mj2vuer_pos(pos: NDArray) -> NDArray:
-    return MJ_TO_VUER_ROT.apply(pos)
-
-
-def mj2vuer_orn(orn: NDArray) -> NDArray:
-    rot = R.from_quat(orn[k.XYZW_2_WXYZ]) * MJ_TO_VUER_ROT
-    return rot.as_euler("xyz")
-
-
-def vuer2mj_pos(pos: NDArray) -> NDArray:
-    return VUER_TO_MJ_ROT.apply(pos)
-
-
-def vuer2mj_orn(orn: R) -> NDArray:
-    rot = orn * VUER_TO_MJ_ROT
-    return rot.as_quat()[k.WXYZ_2_XYZW]
-
 
 # global variables get updated by various async functions
 async_lock = asyncio.Lock()
@@ -154,9 +129,9 @@ async def hand_handler(event, _):
         wrist_rotation = R.from_matrix(wrist_rotation)
         async with async_lock:
             global hr_pos, hr_orn, grip_r
-            hr_pos = vuer2mj_pos(rthumb_pos)
+            hr_pos = k.vuer2mj_pos(rthumb_pos)
             print(f"goal_pos_eer {hr_pos}")
-            hr_orn = vuer2mj_orn(wrist_rotation)
+            hr_orn = k.vuer2mj_orn(wrist_rotation)
             print(f"goal_orn_eer {hr_orn}")
             grip_r = rgrip_dist
             print(f"right gripper at {grip_r}")
@@ -177,9 +152,9 @@ async def hand_handler(event, _):
             wrist_rotation = R.from_matrix(wrist_rotation)
             async with async_lock:
                 global hl_pos, hl_orn, grip_l
-                hl_pos = vuer2mj_pos(lthumb_pos)
+                hl_pos = k.vuer2mj_pos(lthumb_pos)
                 print(f"goal_pos_eel {hl_pos}")
-                hl_orn = vuer2mj_orn(wrist_rotation)
+                hl_orn = k.vuer2mj_orn(wrist_rotation)
                 print(f"goal_orn_eel {hl_orn}")
                 grip_l = lgrip_dist
                 print(f"left gripper at {grip_l}")
@@ -197,21 +172,21 @@ async def main(session: VuerSession):
     session.upsert @ Urdf(
         src=URDF_LINK,
         jointValues=env.unwrapped.q_dict,
-        position=mj2vuer_pos(robot_pos),
-        rotation=mj2vuer_orn(robot_orn),
+        position=k.mj2vuer_pos(robot_pos),
+        rotation=k.mj2vuer_orn(robot_orn),
         key="robot",
     )
     session.upsert @ Box(
         args=cube_size,
-        position=mj2vuer_pos(cube_pos),
-        rotation=mj2vuer_orn(cube_orn),
+        position=k.mj2vuer_pos(cube_pos),
+        rotation=k.mj2vuer_orn(cube_orn),
         materialType="standard",
         material=dict(color="#ff0000"),
         key="cube",
     )
     session.upsert @ Plane(
         args=TABLE_SIZE,
-        position=mj2vuer_pos(table_pos),
+        position=k.mj2vuer_pos(table_pos),
         rotation=TABLE_ROT,
         materialType="standard",
         material=dict(color="#cbc1ae"),
@@ -219,8 +194,8 @@ async def main(session: VuerSession):
     )
     session.upsert @ Capsule(
         args=hr_size,
-        position=mj2vuer_pos(hr_pos),
-        rotation=mj2vuer_orn(hr_orn),
+        position=k.mj2vuer_pos(hr_pos),
+        rotation=k.mj2vuer_orn(hr_orn),
         materialType="standard",
         material=dict(color="#0000ff"),
         key="hr",
@@ -228,8 +203,8 @@ async def main(session: VuerSession):
     if BIMANUAL:
         session.upsert @ Capsule(
             args=hl_size,
-            position=mj2vuer_pos(hl_pos),
-            rotation=mj2vuer_orn(hl_orn),
+            position=k.mj2vuer_pos(hl_pos),
+            rotation=k.mj2vuer_orn(hl_orn),
             materialType="standard",
             material=dict(color="#ff0000"),
             key="hl",
@@ -243,23 +218,23 @@ async def main(session: VuerSession):
         async with async_lock:
             session.upsert @ Urdf(
                 jointValues=q,
-                position=mj2vuer_pos(robot_pos),
-                rotation=mj2vuer_orn(robot_orn),
+                position=k.mj2vuer_pos(robot_pos),
+                rotation=k.mj2vuer_orn(robot_orn),
                 key="robot",
             )
             session.upsert @ Box(
-                position=mj2vuer_pos(cube_pos),
-                rotation=mj2vuer_orn(cube_orn),
+                position=k.mj2vuer_pos(cube_pos),
+                rotation=k.mj2vuer_orn(cube_orn),
                 key="cube",
             )
             session.upsert @ Capsule(
-                position=mj2vuer_pos(hr_pos),
-                rotation=mj2vuer_orn(hr_orn),
+                position=k.mj2vuer_pos(hr_pos),
+                rotation=k.mj2vuer_orn(hr_orn),
                 key="hr",
             )
             if BIMANUAL:
                 session.upsert @ Capsule(
-                    position=mj2vuer_pos(hl_pos),
-                    rotation=mj2vuer_orn(hl_orn),
+                    position=k.mj2vuer_pos(hl_pos),
+                    rotation=k.mj2vuer_orn(hl_orn),
                     key="hl",
                 )

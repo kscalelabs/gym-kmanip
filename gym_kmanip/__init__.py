@@ -1,11 +1,12 @@
 from collections import OrderedDict
+from dataclasses import dataclass
 import os
 from typing import List, Tuple
 
 from gymnasium.envs.registration import register
-
 import numpy as np
 from numpy.typing import NDArray
+from scipy.spatial.transform import Rotation as R
 
 ASSETS_DIR: str = os.path.join(os.path.dirname(__file__), "assets")
 DATA_DIR: str = os.path.join(os.path.dirname(__file__), "data")
@@ -100,20 +101,24 @@ IK_RES_REG: float = 1e-3
 IK_JAC_RAD: float = 0.04
 IK_JAC_REG: float = 1e-3
 
-# head camera is attached to robot torso
-CAM_HEAD_IMG_WIDTH: int = 640
-CAM_HEAD_IMG_HEIGHT: int = 480
-CAM_HEAD_FOCAL_LENGTH: float = 0.7 * CAM_HEAD_IMG_HEIGHT
 
-# gripper cameras are attached to robot end effectors
-CAM_GRIP_IMG_WIDTH: int = 60
-CAM_GRIP_IMG_HEIGHT: int = 40
-CAM_GRIP_FOCAL_LENGTH: float = 0.7 * CAM_GRIP_IMG_HEIGHT
+@dataclass
+class Cam:
+    w: int  # image width
+    h: int  # image height
+    fl: int  # focal length
+    pp: Tuple[int]  # principal point
+    name: str  # name
+    low: int = 0
+    high: int = 255
+    dtype = np.uint8
 
-# overhead camera is used for visualization
-CAM_TOP_IMG_WIDTH: int = 640
-CAM_TOP_IMG_HEIGHT: int = 480
-CAM_TOP_FOCAL_LENGTH: float = 0.7 * CAM_TOP_IMG_HEIGHT
+
+CAMERAS: OrderedDict[str, Cam] = OrderedDict()
+CAMERAS["head"] = Cam(640, 480, 448, (320, 240), "head")
+CAMERAS["top"] = Cam(640, 480, 448, (320, 240), "top")
+CAMERAS["grip_r"] = Cam(60, 40, 45, (30, 20), "grip_r")
+CAMERAS["grip_l"] = Cam(60, 40, 45, (30, 20), "grip_l")
 
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE_X: Tuple[float] = [0.1, 0.3]
@@ -144,6 +149,27 @@ CTRL_ALPHA: float = 0.2
 # https://github.com/clemense/quaternion-conventions
 XYZW_2_WXYZ: NDArray = np.array([3, 0, 1, 2])
 WXYZ_2_XYZW: NDArray = np.array([1, 2, 3, 0])
+MJ_TO_VUER_ROT: R = R.from_euler("z", np.pi) * R.from_euler("x", np.pi / 2)
+VUER_TO_MJ_ROT: R = MJ_TO_VUER_ROT.inv()
+
+
+def mj2vuer_pos(pos: NDArray) -> NDArray:
+    return MJ_TO_VUER_ROT.apply(pos)
+
+
+def mj2vuer_orn(orn: NDArray) -> NDArray:
+    rot = R.from_quat(orn[XYZW_2_WXYZ]) * MJ_TO_VUER_ROT
+    return rot.as_euler("xyz")
+
+
+def vuer2mj_pos(pos: NDArray) -> NDArray:
+    return VUER_TO_MJ_ROT.apply(pos)
+
+
+def vuer2mj_orn(orn: R) -> NDArray:
+    rot = orn * VUER_TO_MJ_ROT
+    return rot.as_quat()[WXYZ_2_XYZW]
+
 
 register(
     id="KManipSoloArm",
@@ -177,8 +203,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_head",  # robot head camera
-            "cam_grip_r",  # right gripper camera
+            "camera/head",  # robot head camera
+            "camera/grip_r",  # right gripper camera
         ],
         "act_list": [
             "eer_pos",  # right end effector position
@@ -226,9 +252,9 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_head",  # robot head camera
-            "cam_grip_l",  # left gripper camera
-            "cam_grip_r",  # right gripper camera
+            "camera/head",  # robot head camera
+            "camera/grip_l",  # left gripper camera
+            "camera/grip_r",  # right gripper camera
         ],
         "act_list": [
             "eel_pos",  # left end effector position
@@ -279,9 +305,9 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_head",  # robot head camera
-            "cam_grip_l",  # left gripper camera
-            "cam_grip_r",  # right gripper camera
+            "camera/head",  # robot head camera
+            "camera/grip_l",  # left gripper camera
+            "camera/grip_r",  # right gripper camera
         ],
         "act_list": [
             "eel_pos",  # left end effector position

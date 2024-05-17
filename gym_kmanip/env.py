@@ -92,30 +92,15 @@ class KManipTask(base.Task):
             obs["q_pos"] = physics.data.qpos.copy()
         if "q_vel" in self.gym_env.obs_list:
             obs["q_vel"] = physics.data.qvel.copy()
-        if "cam_top" in self.gym_env.obs_list:
-            obs["cam_top"] = physics.render(
-                height=k.CAM_TOP_IMG_HEIGHT,
-                width=k.CAM_TOP_IMG_WIDTH,
-                camera_id="top",
-            ).copy()
-        if "cam_head" in self.gym_env.obs_list:
-            obs["cam_head"] = physics.render(
-                height=k.CAM_HEAD_IMG_HEIGHT,
-                width=k.CAM_HEAD_IMG_WIDTH,
-                camera_id="head",
-            ).copy()
-        if "cam_grip_l" in self.gym_env.obs_list:
-            obs["cam_grip_l"] = physics.render(
-                height=k.CAM_GRIP_IMG_HEIGHT,
-                width=k.CAM_GRIP_IMG_WIDTH,
-                camera_id="grip_l",
-            ).copy()
-        if "cam_grip_r" in self.gym_env.obs_list:
-            obs["cam_grip_r"] = physics.render(
-                height=k.CAM_GRIP_IMG_HEIGHT,
-                width=k.CAM_GRIP_IMG_WIDTH,
-                camera_id="grip_r",
-            ).copy()
+
+        for obs_name in self.gym_env.obs_list:
+            if "camera" in obs_name:
+                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+                obs[obs_name] = physics.render(
+                    height=cam.h,
+                    width=cam.w,
+                    camera_id=cam.name,
+                ).copy()
         return obs
 
     def get_reward(self, physics) -> float:
@@ -163,10 +148,10 @@ class KManipEnv(gym.Env):
         obs_list: List[str] = [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_top",  # overhead camera
-            "cam_head",  # robot head camera
-            "cam_grip_l",  # left gripper camera
-            "cam_grip_r",  # right gripper camera
+            "camera/top",  # overhead camera
+            "camera/head",  # robot head camera
+            "camera/grip_l",  # left gripper camera
+            "camera/grip_r",  # right gripper camera
         ],
         act_list: List[str] = [
             "eel_pos",  # left end effector position
@@ -214,8 +199,8 @@ class KManipEnv(gym.Env):
         _obs_dict: OrderedDict[str, spaces.Space] = OrderedDict()
         if "q_pos" in obs_list:
             _obs_dict["q_pos"] = spaces.Box(
-                low=np.array([-np.pi] * self.q_len),
-                high=np.array([np.pi] * self.q_len),
+                low=np.array([-2 * np.pi] * self.q_len),
+                high=np.array([2 * np.pi] * self.q_len),
                 dtype=np.float64,
             )
         if "q_vel" in obs_list:
@@ -224,66 +209,24 @@ class KManipEnv(gym.Env):
                 high=np.array([np.inf] * self.q_len),
                 dtype=np.float64,
             )
-        if "cam_top" in obs_list:
-            _obs_dict["cam_top"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_TOP_IMG_HEIGHT, k.CAM_TOP_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
-            if self.log:
-                rr.log(
-                    "world/cam_top",
-                    rr.Pinhole(
-                        resolution=[k.CAM_TOP_IMG_WIDTH, k.CAM_TOP_IMG_HEIGHT],
-                        focal_length=k.CAM_TOP_FOCAL_LENGTH,
-                    ),
+        for obs_name in obs_list:
+            if "camera" in obs_name:
+                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+                _obs_dict[obs_name] = spaces.Box(
+                    low=cam.low,
+                    high=cam.high,
+                    shape=(cam.h, cam.w, 3),
+                    dtype=cam.dtype,
                 )
-        if "cam_head" in obs_list:
-            _obs_dict["cam_head"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_HEAD_IMG_HEIGHT, k.CAM_HEAD_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
-            if self.log:
-                rr.log(
-                    "world/cam_head",
-                    rr.Pinhole(
-                        resolution=[k.CAM_HEAD_IMG_WIDTH, k.CAM_HEAD_IMG_HEIGHT],
-                        focal_length=k.CAM_HEAD_FOCAL_LENGTH,
-                    ),
-                )
-        if "cam_grip_l" in obs_list:
-            _obs_dict["cam_grip_l"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_GRIP_IMG_HEIGHT, k.CAM_GRIP_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
-            if self.log:
-                rr.log(
-                    "world/cam_grip_l",
-                    rr.Pinhole(
-                        resolution=[k.CAM_GRIP_IMG_WIDTH, k.CAM_GRIP_IMG_HEIGHT],
-                        focal_length=k.CAM_GRIP_FOCAL_LENGTH,
-                    ),
-                )
-        if "cam_grip_r" in obs_list:
-            _obs_dict["cam_grip_r"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_GRIP_IMG_HEIGHT, k.CAM_GRIP_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
-            if self.log:
-                rr.log(
-                    "world/cam_grip_r",
-                    rr.Pinhole(
-                        resolution=[k.CAM_GRIP_IMG_WIDTH, k.CAM_GRIP_IMG_HEIGHT],
-                        focal_length=k.CAM_GRIP_FOCAL_LENGTH,
-                    ),
-                )
+                if self.log:
+                    rr.log(
+                        f"world/{cam.name}",
+                        rr.Pinhole(
+                            resolution=[cam.w, cam.h],
+                            focal_length=cam.fl,
+                            principal_point=cam.pp,
+                        ),
+                    )
         self.observation_space = spaces.Dict(_obs_dict)
         # action space
         self.act_list = act_list
@@ -315,9 +258,9 @@ class KManipEnv(gym.Env):
         self.action_space = spaces.Dict(_action_dict)
 
     def render(self):
-        return self.mj_env.physics.render(
-            k.CAM_TOP_IMG_HEIGHT, k.CAM_TOP_IMG_WIDTH, camera_id="top"
-        )
+        # TODO: when is render actually used?
+        cam: k.Cam = k.CAMERAS["top"]
+        return self.mj_env.physics.render(cam.h, cam.w, camera_id=cam.name)
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -377,46 +320,18 @@ class KManipEnv(gym.Env):
                     rotation=rr.Quaternion(xyzw=info["cube_orn"][k.WXYZ_2_XYZW]),
                 ),
             )
-            if "cam_top" in self.obs_list:
-                pos = self.mj_env.physics.data.camera("top").xpos.copy()
-                orn = self.mj_env.physics.data.camera("top").xmat.copy()
-                rr.log("camera/cam_top",rr.Image(ts.observation["cam_top"]))
-                rr.log(
-                    "world/cam_top",
-                    rr.Transform3D(
-                        translation=pos,
-                    ),
-                )
-            if "cam_head" in self.obs_list:
-                pos = self.mj_env.physics.data.camera("head").xpos.copy()
-                orn = self.mj_env.physics.data.camera("head").xmat.copy()
-                rr.log("camera/cam_head",rr.Image(ts.observation["cam_head"]))
-                rr.log(
-                    "world/cam_head",
-                    rr.Transform3D(
-                        translation=pos,
-                    ),
-                )
-            if "cam_grip_l" in self.obs_list:
-                pos = self.mj_env.physics.data.camera("grip_l").xpos.copy()
-                orn = self.mj_env.physics.data.camera("grip_l").xmat.copy()
-                rr.log("camera/cam_grip_l",rr.Image(ts.observation["cam_grip_l"]))
-                rr.log(
-                    "world/cam_grip_l",
-                    rr.Transform3D(
-                        translation=pos,
-                    ),
-                )
-            if "cam_grip_r" in self.obs_list:
-                pos = self.mj_env.physics.data.camera("grip_r").xpos.copy()
-                orn = self.mj_env.physics.data.camera("grip_r").xmat.copy()
-                rr.log("camera/cam_grip_r",rr.Image(ts.observation["cam_grip_r"]))
-                rr.log(
-                    "world/cam_grip_r",
-                    rr.Transform3D(
-                        translation=pos,
-                    ),
-                )
+            for obs_name in self.obs_list:
+                if "camera" in obs_name:
+                    cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+                    rr.log(f"camera/{cam.name}", rr.Image(ts.observation[obs_name]))
+                    pos = self.mj_env.physics.data.camera(cam.name).xpos.copy()
+                    orn = self.mj_env.physics.data.camera(cam.name).xmat.copy()
+                    rr.log(
+                        f"world/{cam.name}",
+                        rr.Transform3D(
+                            translation=pos,
+                        ),
+                    )
             print(f"logging took {(time.time() - start_time) * 1000:.2f}ms")
         return ts.observation, ts.reward, terminated, False, info
 
