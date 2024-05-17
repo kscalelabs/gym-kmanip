@@ -7,9 +7,11 @@ from gymnasium.envs.registration import register
 import numpy as np
 from numpy.typing import NDArray
 
-MAX_EPISODE_STEPS: int = 300
 ASSETS_DIR: str = os.path.join(os.path.dirname(__file__), "assets")
+DATA_DIR: str = os.path.join(os.path.dirname(__file__), "data")
+
 FPS: int = 30
+MAX_EPISODE_STEPS: int = 100
 CONTROL_TIMESTEP: float = 0.02  # ms
 
 Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
@@ -98,15 +100,20 @@ IK_RES_REG: float = 1e-3
 IK_JAC_RAD: float = 0.04
 IK_JAC_REG: float = 1e-3
 
-# image sizes depend on camera
+# head camera is attached to robot torso
 CAM_HEAD_IMG_WIDTH: int = 640
 CAM_HEAD_IMG_HEIGHT: int = 480
+CAM_HEAD_FOCAL_LENGTH: float = 0.7 * CAM_HEAD_IMG_HEIGHT
+
+# gripper cameras are attached to robot end effectors
 CAM_GRIP_IMG_WIDTH: int = 60
 CAM_GRIP_IMG_HEIGHT: int = 40
+CAM_GRIP_FOCAL_LENGTH: float = 0.7 * CAM_GRIP_IMG_HEIGHT
 
 # overhead camera is used for visualization
 CAM_TOP_IMG_WIDTH: int = 640
 CAM_TOP_IMG_HEIGHT: int = 480
+CAM_TOP_FOCAL_LENGTH: float = 0.7 * CAM_TOP_IMG_HEIGHT
 
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE_X: Tuple[float] = [0.1, 0.3]
@@ -130,8 +137,13 @@ EE_DEFAULT_ORN: NDArray = np.array([1, 0, 0, 0])
 CTRL_ID_R_GRIP: int = 8
 CTRL_ID_L_GRIP: int = 18
 
-# exponential filtering
+# exponential filtering for control signal
 CTRL_ALPHA: float = 0.2
+
+# MuJoCo and Scipy/Rerun use different quaternion conventions
+# https://github.com/clemense/quaternion-conventions
+XYZW_2_WXYZ: NDArray = np.array([3, 0, 1, 2])
+WXYZ_2_XYZW: NDArray = np.array([1, 2, 3, 0])
 
 register(
     id="KManipSoloArm",

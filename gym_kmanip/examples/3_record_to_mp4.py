@@ -8,8 +8,8 @@ import gym_kmanip as k
 # ENV_NAME: str = "KManipSoloArm"
 # ENV_NAME: str = "KManipSoloArmVision"
 # ENV_NAME: str = "KManipDualArm"
-# ENV_NAME: str = "KManipDualArmVision"
-ENV_NAME: str = "KManipTorso"
+ENV_NAME: str = "KManipDualArmVision"
+# ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
 env = gym.make(ENV_NAME)
 observation, info = env.reset()
@@ -31,4 +31,4 @@ for _ in range(k.MAX_EPISODE_STEPS):
         observation, info = env.reset()
 
 env.close()
-imageio.mimsave(f"viz_{env_name}.mp4", np.stack(frames), fps=k.FPS)
+imageio.mimsave(f"viz_{ENV_NAME}.mp4", np.stack(frames), fps=k.FPS)

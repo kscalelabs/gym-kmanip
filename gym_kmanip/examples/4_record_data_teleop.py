@@ -50,9 +50,6 @@ URDF_LINK: str = (
 # conversion functions between MuJoCo and Vuer axes
 MJ_TO_VUER_ROT: R = R.from_euler("z", np.pi) * R.from_euler("x", np.pi / 2)
 VUER_TO_MJ_ROT: R = MJ_TO_VUER_ROT.inv()
-# MuJoCo and Scipy use different quaternion conventions
-# https://github.com/clemense/quaternion-conventions
-MJ_TO_VUER_QUAT: NDArray = np.array([3, 0, 1, 2])
 
 
 def mj2vuer_pos(pos: NDArray) -> NDArray:
@@ -60,7 +57,7 @@ def mj2vuer_pos(pos: NDArray) -> NDArray:
 
 
 def mj2vuer_orn(orn: NDArray) -> NDArray:
-    rot = R.from_quat(orn[MJ_TO_VUER_QUAT]) * MJ_TO_VUER_ROT
+    rot = R.from_quat(orn[k.XYZW_2_WXYZ]) * MJ_TO_VUER_ROT
     return rot.as_euler("xyz")
 
 
@@ -70,7 +67,8 @@ def vuer2mj_pos(pos: NDArray) -> NDArray:
 
 def vuer2mj_orn(orn: R) -> NDArray:
     rot = orn * VUER_TO_MJ_ROT
-    return rot.as_quat()[MJ_TO_VUER_QUAT]
+    return rot.as_quat()[k.WXYZ_2_XYZW]
+
 
 # global variables get updated by various async functions
 async_lock = asyncio.Lock()

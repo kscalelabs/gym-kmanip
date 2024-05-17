@@ -80,7 +80,7 @@ pip install rerun-sdk==0.15.1
 start the server on the robot computer
 
 ```bash
-python gym_kmanip/examples/3_record_data.py
+python gym_kmanip/examples/4_record_data_teleop.py
 ```
 
 start ngrok on the robot computer.
@@ -91,13 +91,21 @@ ngrok http 8012
 
 open the browser app on the vr headset and go to the ngrok url
 
+## Usage - Visualizing Data
+
+data is visualized using rerun
+
+```bash
+rerun gym_kmanip/data/test.rrd
+```
+
 ## Help Wanted
 
 ✅ solo arm w/ vision
 
 ✅ dual arm w/ vision
 
-⬜️ torso w/ vision
+✅ torso w/ vision
 
 ✅ inverse kinematics using mujoco
 
