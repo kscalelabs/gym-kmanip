@@ -2,9 +2,7 @@ import asyncio
 import os
 import time
 from datetime import datetime
-import math
 from typing import Dict
-import math
 
 from dm_control import viewer
 import gymnasium as gym
@@ -13,7 +11,7 @@ from numpy.typing import NDArray
 import rerun as rr
 from scipy.spatial.transform import Rotation as R
 from vuer import Vuer, VuerSession
-from vuer.schemas import Box, Capsule, Hands, PointLight, Urdf
+from vuer.schemas import Box, Capsule, Hands, Plane, PointLight, Urdf
 
 import gym_kmanip as k
 
@@ -60,24 +58,26 @@ if LOG_DATASET:
     rr.log("meta/urdf_link", URDF_LINK)
 
 # conversion functions between MuJoCo and Vuer axes
-MJ_TO_VUER_AXES: NDArray = np.array([0, 2, 1], dtype=np.uint8)
-MJ_TO_VUER_AXES_SIGN: NDArray = np.array([-1, 1, 1], dtype=np.int8)
+MJ_TO_VUER_ROT: R = R.from_euler("z", np.pi) * R.from_euler("x", np.pi / 2)
+VUER_TO_MJ_ROT: R = MJ_TO_VUER_ROT.inv()
 
 
 def mj2vuer_pos(pos: NDArray) -> NDArray:
-    return np.multiply(pos[MJ_TO_VUER_AXES], MJ_TO_VUER_AXES_SIGN)
+    return MJ_TO_VUER_ROT.apply(pos)
 
 
 def mj2vuer_orn(orn: NDArray) -> NDArray:
-    return R.from_quat(orn).as_euler("xyz")
+    rot = R.from_quat(orn).inv() * MJ_TO_VUER_ROT
+    return rot.as_euler("xyz")
 
 
 def vuer2mj_pos(pos: NDArray) -> NDArray:
-    return np.multiply(pos[MJ_TO_VUER_AXES], MJ_TO_VUER_AXES_SIGN)
+    return VUER_TO_MJ_ROT.apply(pos)
 
 
-def vuer2mj_orn(orn: NDArray) -> NDArray:
-    return R.from_euler("xyz", orn).as_quat()
+def vuer2mj_orn(orn: R) -> NDArray:
+    rot = orn.inv() * VUER_TO_MJ_ROT
+    return rot.as_euler("xyz")
 
 
 env = gym.make(ENV_NAME)
@@ -123,6 +123,10 @@ cube_orn: NDArray = mj_data.body("cube").xquat
 if LOG_DATASET:
     rr.log("meta/cube_pose_start", rr.Transform3D(pos=cube_pos, quat=cube_orn))
 
+# table position and size
+table_pos: NDArray = mj_data.body("table").xpos
+table_size: NDArray = np.array([0.4, 0.8])
+TABLE_ROT: NDArray = (R.from_euler("z", np.pi/2) * R.from_euler("x", -np.pi/2)).as_euler("xyz")
 
 async def run_env() -> None:
     start_time = time.time()
@@ -195,7 +199,7 @@ async def hand_handler(event, _):
         # orientation is calculated from wrist rotation matrix
         wrist_rotation: NDArray = np.array(event.value["rightHand"])
         wrist_rotation = wrist_rotation.reshape(4, 4)[:3, :3]
-        wrist_rotation = R.from_matrix(wrist_rotation).as_quat()
+        wrist_rotation = R.from_matrix(wrist_rotation)
         async with async_lock:
             global eer_site_pos, eer_site_orn, grip_r
             eer_site_pos = vuer2mj_pos(rthumb_pos)
@@ -218,7 +222,7 @@ async def hand_handler(event, _):
             # orientation is calculated from wrist rotation matrix
             wrist_rotation: NDArray = np.array(event.value["leftHand"])
             wrist_rotation = wrist_rotation.reshape(4, 4)[:3, :3]
-            wrist_rotation = R.from_matrix(wrist_rotation).as_quat()
+            wrist_rotation = R.from_matrix(wrist_rotation)
             async with async_lock:
                 global eel_site_pos, eel_site_orn, grip_l
                 eel_site_pos = vuer2mj_pos(lthumb_pos)
@@ -252,6 +256,14 @@ async def main(session: VuerSession):
         materialType="standard",
         material=dict(color="#ff0000"),
         key="cube",
+    )
+    session.upsert @ Plane(
+        args=table_size,
+        position=mj2vuer_pos(table_pos),
+        rotation=TABLE_ROT,
+        materialType="standard",
+        material=dict(color="#cbc1ae"),
+        key="table",
     )
     session.upsert @ Capsule(
         args=eer_site_size,

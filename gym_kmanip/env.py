@@ -1,5 +1,4 @@
 from collections import OrderedDict
-import math
 import os
 from typing import List
 
@@ -195,8 +194,8 @@ class KManipEnv(gym.Env):
         _obs_dict: OrderedDict[str, spaces.Space] = OrderedDict()
         if "q_pos" in obs_list:
             _obs_dict["q_pos"] = spaces.Box(
-                low=np.array([-math.pi] * self.q_len),
-                high=np.array([math.pi] * self.q_len),
+                low=np.array([-np.pi] * self.q_len),
+                high=np.array([np.pi] * self.q_len),
                 dtype=np.float64,
             )
         if "q_vel" in obs_list:
