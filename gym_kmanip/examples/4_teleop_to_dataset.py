@@ -1,14 +1,11 @@
 import asyncio
-import os
 import time
-from datetime import datetime
 from typing import Dict
 
 from dm_control import viewer
 import gymnasium as gym
 import numpy as np
 from numpy.typing import NDArray
-import rerun as rr
 from scipy.spatial.transform import Rotation as R
 from vuer import Vuer, VuerSession
 from vuer.schemas import Box, Capsule, Hands, Plane, PointLight, Urdf
@@ -22,15 +19,11 @@ import gym_kmanip as k
 # ENV_NAME: str = "KManipDualArmVision"
 ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
-
-# dataset is recorded as a rerun replay
-LOG_DATASET: bool = False
-if LOG_DATASET:
-    DATASET_DIR: str = os.path.join(os.path.dirname(__file__), "data")
-    DATASET_NAME: str = f"teleop_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    DATASET_OUTPUT_PATH = os.path.join(DATASET_DIR, DATASET_NAME)
-    rr.init(DATASET_OUTPUT_PATH)
-    rr.log("meta/env_name", ENV_NAME)
+env = gym.make(ENV_NAME)
+mj_data = env.unwrapped.mj_env.physics.data
+mj_model = env.unwrapped.mj_env.physics.model
+# viewer.launch(env.unwrapped.mj_env)
+env.reset()
 
 # is this environment bimanual?
 BIMANUAL: bool = True
@@ -49,17 +42,17 @@ if "DualArm" in ENV_NAME:
     URDF_NAME: str = "stompy_dual_arm_tiny_glb"
 if "Torso" in ENV_NAME:
     URDF_NAME: str = "stompy_tiny_glb"
-
-# web urdf is used by Vuer
+# Vuer requires a web link to the urdf for the headset
 URDF_LINK: str = (
     f"https://raw.githubusercontent.com/kscalelabs/webstompy/master/urdf/{URDF_NAME}/robot.urdf"
 )
-if LOG_DATASET:
-    rr.log("meta/urdf_link", URDF_LINK)
 
 # conversion functions between MuJoCo and Vuer axes
 MJ_TO_VUER_ROT: R = R.from_euler("z", np.pi) * R.from_euler("x", np.pi / 2)
 VUER_TO_MJ_ROT: R = MJ_TO_VUER_ROT.inv()
+# MuJoCo and Scipy use different quaternion conventions
+# https://github.com/clemense/quaternion-conventions
+MJ_TO_VUER_QUAT: NDArray = np.array([3, 0, 1, 2])
 
 
 def mj2vuer_pos(pos: NDArray) -> NDArray:
@@ -67,7 +60,7 @@ def mj2vuer_pos(pos: NDArray) -> NDArray:
 
 
 def mj2vuer_orn(orn: NDArray) -> NDArray:
-    rot = R.from_quat(orn).inv() * MJ_TO_VUER_ROT
+    rot = R.from_quat(orn[MJ_TO_VUER_QUAT]) * MJ_TO_VUER_ROT
     return rot.as_euler("xyz")
 
 
@@ -76,95 +69,56 @@ def vuer2mj_pos(pos: NDArray) -> NDArray:
 
 
 def vuer2mj_orn(orn: R) -> NDArray:
-    rot = orn.inv() * VUER_TO_MJ_ROT
-    return rot.as_euler("xyz")
-
-
-env = gym.make(ENV_NAME)
-# viewer.launch(env.unwrapped.mj_env)
-mj_data = env.unwrapped.mj_env.physics.data
-mj_model = env.unwrapped.mj_env.physics.model
-env.reset()
-
-# robot position and orientation
-robot_pos: NDArray = mj_data.body("robot_root").xpos
-robot_orn: NDArray = mj_data.body("robot_root").xquat
-if LOG_DATASET:
-    rr.log("meta/robot_pose_start", rr.Transform3D(pos=robot_pos, quat=robot_orn))
-
-# cube and ee sites use visualizer geoms
-cube_size: NDArray = mj_model.geom("cube").size
-eer_site_size: NDArray = mj_model.site("hand_r_orn").size
-eel_site_size: NDArray = mj_model.site("hand_l_orn").size
+    rot = orn * VUER_TO_MJ_ROT
+    return rot.as_quat()[MJ_TO_VUER_QUAT]
 
 # global variables get updated by various async functions
 async_lock = asyncio.Lock()
 q: Dict[str, float] = env.unwrapped.q_dict
-mj_q: NDArray = mj_data.qpos.copy()
 
-# gobal variables for ee and gripper
-eer_site_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_R].copy()
-eer_site_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_R].copy()
+# gobal variables for hand pose and grip
+hr_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_R].copy()
+hr_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_R].copy()
+hr_size: NDArray = mj_model.site("hand_r_orn").size
 grip_r: float = 0.0
-if LOG_DATASET:
-    rr.log("meta/eer_pose_start", rr.Transform3D(pos=eer_site_pos, quat=eer_site_orn))
 if BIMANUAL:
-    eel_site_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_L].copy()
-    eel_site_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_L].copy()
+    hl_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_L].copy()
+    hl_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_L].copy()
+    hl_size: NDArray = mj_model.site("hand_l_orn").size
     grip_l: float = 0.0
-    if LOG_DATASET:
-        rr.log(
-            "meta/eel_pose_start", rr.Transform3D(pos=eel_site_pos, quat=eel_site_orn)
-        )
-
-# gobal variables for cube position and orientation
+# NOTE: these are not .copy() and will be updated by mujoco in the background
 cube_pos: NDArray = mj_data.body("cube").xpos
 cube_orn: NDArray = mj_data.body("cube").xquat
-if LOG_DATASET:
-    rr.log("meta/cube_pose_start", rr.Transform3D(pos=cube_pos, quat=cube_orn))
-
-# table position and size
+cube_size: NDArray = mj_model.geom("cube").size
+robot_pos: NDArray = mj_data.body("robot_root").xpos
+robot_orn: NDArray = mj_data.body("robot_root").xquat
+# table is easier to construct from base vuer plane primitize than load from stl
 table_pos: NDArray = mj_data.body("table").xpos
-table_size: NDArray = np.array([0.4, 0.8])
-TABLE_ROT: NDArray = (R.from_euler("z", np.pi/2) * R.from_euler("x", -np.pi/2)).as_euler("xyz")
+TABLE_SIZE: NDArray = np.array([0.4, 0.8])
+TABLE_ROT: NDArray = (
+    R.from_euler("z", np.pi / 2) * R.from_euler("x", -np.pi / 2)
+).as_euler("xyz")
+
 
 async def run_env() -> None:
     start_time = time.time()
     action = env.action_space.sample()
     async with async_lock:
-        global cube_pos, cube_orn
-        cube_pos = mj_data.body("cube").xpos
-        cube_orn = mj_data.body("cube").xquat
-        if LOG_DATASET:
-            rr.log("data/cube_pose", rr.Transform3D(pos=cube_pos, quat=cube_orn))
-        global eer_site_pos, eer_site_orn, grip_r
-        action["eer_pos"] = eer_site_pos
-        action["eer_orn"] = eer_site_orn
+        global hr_pos, hr_orn, grip_r
+        action["eer_pos"] = hr_pos
+        action["eer_orn"] = hr_orn
         action["grip_r"] = grip_r
-        if LOG_DATASET:
-            rr.log("data/eer_pose", rr.Transform3D(pos=eer_site_pos, quat=eer_site_orn))
-            rr.log("data/grip_r", grip_r)
         if BIMANUAL:
-            global eel_site_pos, eel_site_orn, grip_l
-            action["eel_pos"] = eel_site_pos
-            action["eel_orn"] = eel_site_orn
+            global hl_pos, hl_orn, grip_l
+            action["eel_pos"] = hl_pos
+            action["eel_orn"] = hl_orn
             action["grip_l"] = grip_l
-            if LOG_DATASET:
-                rr.log(
-                    "data/eel_pose", rr.Transform3D(pos=eel_site_pos, quat=eel_site_orn)
-                )
-                rr.log("data/grip_l", grip_l)
         _q = mj_data.qpos[: env.unwrapped.q_len]
-        if LOG_DATASET:
-            rr.log("data/q_pos", _q)
         global q
         for i, val in enumerate(_q):
             joint_name = env.unwrapped.q_keys[i]
             q[joint_name] = val
     _, reward, terminated, _, _ = env.step(action)
-    if LOG_DATASET:
-        rr.log("data/reward", reward)
-        rr.log("data/terminated", terminated)
     print(f"env step took {(time.time() - start_time) * 1000:.2f}ms")
 
 
@@ -201,11 +155,11 @@ async def hand_handler(event, _):
         wrist_rotation = wrist_rotation.reshape(4, 4)[:3, :3]
         wrist_rotation = R.from_matrix(wrist_rotation)
         async with async_lock:
-            global eer_site_pos, eer_site_orn, grip_r
-            eer_site_pos = vuer2mj_pos(rthumb_pos)
-            print(f"goal_pos_eer {eer_site_pos}")
-            eer_site_orn = vuer2mj_orn(wrist_rotation)
-            print(f"goal_orn_eer {eer_site_orn}")
+            global hr_pos, hr_orn, grip_r
+            hr_pos = vuer2mj_pos(rthumb_pos)
+            print(f"goal_pos_eer {hr_pos}")
+            hr_orn = vuer2mj_orn(wrist_rotation)
+            print(f"goal_orn_eer {hr_orn}")
             grip_r = rgrip_dist
             print(f"right gripper at {grip_r}")
     if BIMANUAL:
@@ -224,11 +178,11 @@ async def hand_handler(event, _):
             wrist_rotation = wrist_rotation.reshape(4, 4)[:3, :3]
             wrist_rotation = R.from_matrix(wrist_rotation)
             async with async_lock:
-                global eel_site_pos, eel_site_orn, grip_l
-                eel_site_pos = vuer2mj_pos(lthumb_pos)
-                print(f"goal_pos_eel {eel_site_pos}")
-                eel_site_orn = vuer2mj_orn(wrist_rotation)
-                print(f"goal_orn_eel {eel_site_orn}")
+                global hl_pos, hl_orn, grip_l
+                hl_pos = vuer2mj_pos(lthumb_pos)
+                print(f"goal_pos_eel {hl_pos}")
+                hl_orn = vuer2mj_orn(wrist_rotation)
+                print(f"goal_orn_eel {hl_orn}")
                 grip_l = lgrip_dist
                 print(f"left gripper at {grip_l}")
 
@@ -237,8 +191,8 @@ async def hand_handler(event, _):
 async def main(session: VuerSession):
     global q
     global cube_pos, cube_orn
-    global eer_site_pos, eer_site_orn
-    global eel_site_pos, eel_site_orn
+    global hr_pos, hr_orn
+    global hl_pos, hl_orn
     session.upsert @ PointLight(intensity=VUER_LIGHT_INTENSITY, position=VUER_LIGHT_POS)
     session.upsert @ Hands(fps=HAND_FPS, stream=True, key="hands")
     await asyncio.sleep(0.1)
@@ -258,7 +212,7 @@ async def main(session: VuerSession):
         key="cube",
     )
     session.upsert @ Plane(
-        args=table_size,
+        args=TABLE_SIZE,
         position=mj2vuer_pos(table_pos),
         rotation=TABLE_ROT,
         materialType="standard",
@@ -266,21 +220,21 @@ async def main(session: VuerSession):
         key="table",
     )
     session.upsert @ Capsule(
-        args=eer_site_size,
-        position=mj2vuer_pos(eer_site_pos),
-        rotation=mj2vuer_orn(eer_site_orn),
+        args=hr_size,
+        position=mj2vuer_pos(hr_pos),
+        rotation=mj2vuer_orn(hr_orn),
         materialType="standard",
         material=dict(color="#0000ff"),
-        key="eer-site",
+        key="hr",
     )
     if BIMANUAL:
         session.upsert @ Capsule(
-            args=eel_site_size,
-            position=mj2vuer_pos(eel_site_pos),
-            rotation=mj2vuer_orn(eel_site_orn),
+            args=hl_size,
+            position=mj2vuer_pos(hl_pos),
+            rotation=mj2vuer_orn(hl_orn),
             materialType="standard",
             material=dict(color="#ff0000"),
-            key="eel-site",
+            key="hl",
         )
     while True:
         await asyncio.gather(
@@ -301,13 +255,13 @@ async def main(session: VuerSession):
                 key="cube",
             )
             session.upsert @ Capsule(
-                position=mj2vuer_pos(eer_site_pos),
-                rotation=mj2vuer_orn(eer_site_orn),
-                key="eer-site",
+                position=mj2vuer_pos(hr_pos),
+                rotation=mj2vuer_orn(hr_orn),
+                key="hr",
             )
             if BIMANUAL:
                 session.upsert @ Capsule(
-                    position=mj2vuer_pos(eel_site_pos),
-                    rotation=mj2vuer_orn(eel_site_orn),
-                    key="eel-site",
+                    position=mj2vuer_pos(hl_pos),
+                    rotation=mj2vuer_orn(hl_orn),
+                    key="hl",
                 )

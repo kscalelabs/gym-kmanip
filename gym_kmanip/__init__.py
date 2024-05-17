@@ -111,7 +111,7 @@ CAM_TOP_IMG_HEIGHT: int = 480
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE_X: Tuple[float] = [0.1, 0.3]
 CUBE_SPAWN_RANGE_Y: Tuple[float] = [0.5, 0.7]
-CUBE_SPAWN_RANGE_Z: Tuple[float] = [0.52, 0.62]
+CUBE_SPAWN_RANGE_Z: Tuple[float] = [0.6, 0.7]
 
 # reward shaping
 REWARD_SUCCESS_THRESHOLD: float = 2.0

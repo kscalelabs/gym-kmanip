@@ -5,17 +5,17 @@ import numpy as np
 import gym_kmanip as k
 from scipy.spatial.transform import Rotation as R
 
-# env_name = "KManipSoloArm"
-# env_name = "KManipSoloArmVision"
-env_name = "KManipDualArm"
-# env_name = "KManipDualArmVision"
-# env_name = "KManipTorso"
-# env_name = "KManipTorsoVision"
-env = gym.make(env_name)
-
+# choose your environment
+# ENV_NAME: str = "KManipSoloArm"
+# ENV_NAME: str = "KManipSoloArmVision"
+# ENV_NAME: str = "KManipDualArm"
+# ENV_NAME: str = "KManipDualArmVision"
+ENV_NAME: str = "KManipTorso"
+# ENV_NAME: str = "KManipTorsoVision"
+env = gym.make(ENV_NAME)
 # start pos for reach targets
 pos_r = env.unwrapped.mj_env.physics.data.mocap_pos[k.MOCAP_ID_R].copy()
-if "Solo" not in env_name:
+if "Solo" not in ENV_NAME:
     pos_l = env.unwrapped.mj_env.physics.data.mocap_pos[k.MOCAP_ID_L].copy()
 
 # TODO: try larger amplitudes, get a sense of the arm range

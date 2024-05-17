@@ -3,10 +3,10 @@
     <include file="arm_l.xml"/>
     <worldbody>
         <body name="robot_root" pos="0 0 0.5" >
-            <body name="arm_r" pos="0.5 0.6 0" euler="3.1416 0 3.1416">
+            <body name="arm_r" pos="0.5 0.6 0">
                 <include file="arm_r_body.xml"/>
             </body>
-            <body name="arm_l" pos="-0.5 0.6 0" euler="3.1416 0 3.1416">
+            <body name="arm_l" pos="-0.5 0.6 0">
                 <include file="arm_l_body.xml"/>
             </body>
         </body>
