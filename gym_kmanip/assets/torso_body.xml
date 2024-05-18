@@ -1,5 +1,6 @@
 <mujocoinclude>
-    <body name="root" pos="0 0 0" quat="1 0 0 0"><geom type="mesh" rgba="0.615686 0.811765 0.929412 1" mesh="torso_1_top_torso_1" />
+    <body name="root" pos="0 0 0"  euler="0 0 3.1416">
+        <geom type="mesh" rgba="0.615686 0.811765 0.929412 1" mesh="torso_1_top_torso_1" />
         <geom pos="0.0160579 0.0593235 0.0498109" quat="0 -2.32051e-08 1 -2.32051e-08" type="mesh" rgba="0.972549 0.529412 0.00392157 1" mesh="head_1_x4_1_pcb_1" />
         <geom pos="0.000148008 0.0434136 0.0633109" quat="2.32051e-08 0 -4.64102e-08 -1" type="mesh" rgba="0.768627 0.886275 0.952941 1" mesh="head_1_x4_1_outer_1" />
         <geom pos="-0.0870555 0.0664737 -0.0301332" quat="0.379928 -0.596368 0.596368 -0.379928" type="mesh" rgba="0.917647 0.917647 0.917647 1" mesh="right_arm_1_x8_1_outer_1" />

@@ -2,22 +2,24 @@
     <include file="arm_r.xml"/>
     <include file="arm_l.xml"/>
     <worldbody>
-        <body name="arm_r" pos="0.5 0.6 0" euler="3.1416 0 3.1416">
-            <include file="arm_r_body.xml"/>
+        <body name="robot_root" pos="0 0 0.5" >
+            <body name="arm_r" pos="0.5 0.6 0">
+                <include file="arm_r_body.xml"/>
+            </body>
+            <body name="arm_l" pos="-0.5 0.6 0">
+                <include file="arm_l_body.xml"/>
+            </body>
         </body>
-        <body name="arm_l" pos="-0.5 0.6 0" euler="3.1416 0 3.1416">
-            <include file="arm_l_body.xml"/>
-        </body>
-        <body name='hand_r' pos='0.2 0.6 0.1' mocap='true'>
+        <body name='hand_r' pos='0.2 0.6 0.6' mocap='true'>
             <site name="hand_r_pos" pos="0 0 0" size="0.01" type="sphere" rgba="0 0 1 0.3"/>
             <site name="hand_r_orn" pos="0 0 0" size="0.005 0.02" type="capsule" rgba="0 0 1 0.3"/>
         </body>
-        <body name='hand_l' pos='-0.2 0.6 0.1' mocap='true'>
+        <body name='hand_l' pos='-0.2 0.6 0.6' mocap='true'>
             <site name="hand_l_pos" pos="0 0 0" size="0.01" type="sphere" rgba="1 0 0 0.3"/>
             <site name="hand_l_orn" pos="0 0 0" size="0.005 0.02" type="capsule" rgba="1 0 0 0.3"/>
         </body>
-        <camera name="top" pos="0 0 0.8" fovy="78" mode="targetbody" target="table" />
-        <camera name="head" pos="0 0 0.5" fovy="78" mode="targetbody" target="table" />
+        <camera name="top" pos="0 0 1.3" fovy="78" mode="targetbody" target="table" />
+        <camera name="head" pos="0 0 1.0" fovy="78" mode="targetbody" target="table" />
     </worldbody>
     <include file="scene.xml"/>
 </mujoco>

@@ -1,85 +1,90 @@
+from collections import OrderedDict
+from dataclasses import dataclass
 import os
-from typing import Tuple
+from typing import List, Tuple
 
 from gymnasium.envs.registration import register
-
 import numpy as np
 from numpy.typing import NDArray
+from scipy.spatial.transform import Rotation as R
 
-MAX_EPISODE_STEPS: int = 300
 ASSETS_DIR: str = os.path.join(os.path.dirname(__file__), "assets")
+DATA_DIR: str = os.path.join(os.path.dirname(__file__), "data")
+
 FPS: int = 30
+MAX_EPISODE_STEPS: int = 100
 CONTROL_TIMESTEP: float = 0.02  # ms
 
+Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 0.75
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 1.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 2.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_3_dof_x4"] = -2.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_1_dof_x4"] = 0.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_2_dof_x4"] = 0.0
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_3"] = 0.005
+Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_1"] = 0.005
 Q_SOLO_ARM_HOME: NDArray = np.array(
-    [
-        0.0,  # joint_right_arm_1_x8_1_dof_x8
-        0.75,  # joint_right_arm_1_x8_2_dof_x8
-        1.0,  # joint_right_arm_1_x6_1_dof_x6
-        1.0,  # joint_right_arm_1_x6_2_dof_x6
-        2.0,  # joint_right_arm_1_x4_1_dof_x4
-        -2.0,  # joint_right_arm_1_hand_right_1_x4_3_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_1_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_2_dof_x4
-        0.005,  # joint_right_arm_1_hand_right_1_slider_3
-        0.005,  # joint_right_arm_1_hand_right_1_slider_1
-    ],
+    [v for v in Q_SOLO_ARM_HOME_DICT.values()],
     dtype=np.float32,
 )
-Q_DUAL_ARM_HOME: NDArray = np.array(
-    [
-        0.0,  # joint_right_arm_1_x8_1_dof_x8
-        0.75,  # joint_right_arm_1_x8_2_dof_x8
-        1.0,  # joint_right_arm_1_x6_1_dof_x6
-        1.0,  # joint_right_arm_1_x6_2_dof_x6
-        2.0,  # joint_right_arm_1_x4_1_dof_x4
-        -2.7,  # joint_right_arm_1_hand_right_1_x4_3_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_1_dof_x4
-        0.0,  # joint_right_arm_1_hand_right_1_x4_2_dof_x4
-        0.005,  # joint_right_arm_1_hand_right_1_slider_3
-        0.005,  # joint_right_arm_1_hand_right_1_slider_1
-        # ----
-        0.0,  # joint_left_arm_1_x8_1_dof_x8
-        -0.75,  # joint_left_arm_1_x8_2_dof_x8
-        -1.0,  # joint_left_arm_1_x6_1_dof_x6
-        -1.0,  # joint_left_arm_1_x6_2_dof_x6
-        2.0,  # joint_left_arm_1_x4_1_dof_x4
-        0.0,  # joint_left_arm_1_hand_left_1_x4_3_dof_x4
-        0.0,  # joint_left_arm_1_hand_left_1_x4_1_dof_x4
-        0.0,  # joint_left_arm_1_hand_left_1_x4_2_dof_x4
-        0.005,  # joint_left_arm_1_hand_left_1_slider_3
-        0.005,  # joint_left_arm_1_hand_left_1_slider_1
-    ],
-    dtype=np.float32,
-)
+Q_SOLO_ARM_KEYS: List[str] = list(Q_SOLO_ARM_HOME_DICT.keys())
 
-Q_FULL_BODY_HOME: NDArray = np.array(
-    [
-        -1.0,  # joint_head_1_x4_1_dof_x4
-        0.0,  # joint_head_1_x4_2_dof_x4
-        # ----
-        1.7,  # joint_right_arm_1_x8_1_dof_x8
-        1.6,  # joint_right_arm_1_x8_2_dof_x8
-        0.34,  # joint_right_arm_1_x6_1_dof_x6
-        1.6,  # joint_right_arm_1_x6_2_dof_x6
-        1.4,  # joint_right_arm_1_x4_1_dof_x4
-        -0.26,  # joint_right_arm_1_hand_1_x4_1_dof_x4
-        0.0,  # joint_right_arm_1_hand_1_x4_2_dof_x4
-        0.0,  # joint_right_arm_1_hand_1_slider_1
-        0.0,  # joint_right_arm_1_hand_1_slider_2
-        # ----
-        -1.7,  # joint_left_arm_2_x8_1_dof_x8
-        -1.6,  # joint_left_arm_2_x8_2_dof_x8
-        -0.34,  # joint_left_arm_2_x6_1_dof_x6
-        -1.6,  # joint_left_arm_2_x6_2_dof_x6
-        -1.4,  # joint_left_arm_2_x4_1_dof_x4
-        -1.7,  # joint_left_arm_2_hand_1_x4_1_dof_x4
-        0.0,  # joint_left_arm_2_hand_1_x4_2_dof_x4
-        0.0,  # joint_left_arm_2_hand_1_slider_1
-        0.0,  # joint_left_arm_2_hand_1_slider_2
-    ],
+Q_DUAL_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 0.75
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 1.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 2.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_3_dof_x4"] = -2.7
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_1_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_x4_2_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_3"] = 0.005
+Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_1"] = 0.005
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x8_1_dof_x8"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x8_2_dof_x8"] = -0.75
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x6_1_dof_x6"] = -1.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x6_2_dof_x6"] = -1.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_x4_1_dof_x4"] = 2.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_x4_3_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_x4_1_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_x4_2_dof_x4"] = 0.0
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_slider_3"] = 0.005
+Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_slider_1"] = 0.005
+Q_DUAL_ARM_HOME: NDArray = np.array(
+    [v for v in Q_DUAL_ARM_HOME_DICT.values()],
     dtype=np.float32,
 )
+Q_DUAL_ARM_KEYS: List[str] = list(Q_DUAL_ARM_HOME_DICT.keys())
+
+Q_FULL_BODY_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_FULL_BODY_HOME_DICT["joint_head_1_x4_1_dof_x4"] = -1.0
+Q_FULL_BODY_HOME_DICT["joint_head_1_x4_2_dof_x4"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 1.7
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 1.6
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 0.34
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.6
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 1.4
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_x4_1_dof_x4"] = -0.26
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_x4_2_dof_x4"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_slider_1"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_slider_2"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x8_1_dof_x8"] = -1.7
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x8_2_dof_x8"] = -1.6
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x6_1_dof_x6"] = -0.34
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x6_2_dof_x6"] = -1.6
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x4_1_dof_x4"] = -1.4
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_x4_1_dof_x4"] = -1.7
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_x4_2_dof_x4"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_slider_1"] = 0.0
+Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_slider_2"] = 0.0
+Q_FULL_BODY_HOME: NDArray = np.array(
+    [v for v in Q_FULL_BODY_HOME_DICT.values()],
+    dtype=np.float32,
+)
+Q_FULL_BODY_KEYS: List[str] = list(Q_FULL_BODY_HOME_DICT.keys())
 
 # IK joint masks (computed separately for each arm)
 Q_MASK_R: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
@@ -97,20 +102,29 @@ IK_RES_REG: float = 3e-3
 IK_JAC_RAD: float = CONTROL_TIMESTEP
 IK_JAC_REG: float = 9e-3
 
-# image sizes depend on camera
-CAM_HEAD_IMG_WIDTH: int = 640
-CAM_HEAD_IMG_HEIGHT: int = 480
-CAM_GRIP_IMG_WIDTH: int = 60
-CAM_GRIP_IMG_HEIGHT: int = 40
 
-# overhead camera is used for visualization
-CAM_TOP_IMG_WIDTH: int = 640
-CAM_TOP_IMG_HEIGHT: int = 480
+@dataclass
+class Cam:
+    w: int  # image width
+    h: int  # image height
+    fl: int  # focal length
+    pp: Tuple[int]  # principal point
+    name: str  # name
+    low: int = 0
+    high: int = 255
+    dtype = np.uint8
+
+
+CAMERAS: OrderedDict[str, Cam] = OrderedDict()
+CAMERAS["head"] = Cam(640, 480, 448, (320, 240), "head")
+CAMERAS["top"] = Cam(640, 480, 448, (320, 240), "top")
+CAMERAS["grip_r"] = Cam(60, 40, 45, (30, 20), "grip_r")
+CAMERAS["grip_l"] = Cam(60, 40, 45, (30, 20), "grip_l")
 
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE_X: Tuple[float] = [0.1, 0.3]
 CUBE_SPAWN_RANGE_Y: Tuple[float] = [0.5, 0.7]
-CUBE_SPAWN_RANGE_Z: Tuple[float] = [0.03, 0.1]
+CUBE_SPAWN_RANGE_Z: Tuple[float] = [0.6, 0.7]
 
 # reward shaping
 REWARD_SUCCESS_THRESHOLD: float = 2.0
@@ -129,8 +143,34 @@ EE_DEFAULT_ORN: NDArray = np.array([1, 0, 0, 0])
 CTRL_ID_R_GRIP: int = 8
 CTRL_ID_L_GRIP: int = 18
 
-# exponential filtering
+# exponential filtering for control signal
 CTRL_ALPHA: float = 0.2
+
+# MuJoCo and Scipy/Rerun use different quaternion conventions
+# https://github.com/clemense/quaternion-conventions
+XYZW_2_WXYZ: NDArray = np.array([3, 0, 1, 2])
+WXYZ_2_XYZW: NDArray = np.array([1, 2, 3, 0])
+MJ_TO_VUER_ROT: R = R.from_euler("z", np.pi) * R.from_euler("x", np.pi / 2)
+VUER_TO_MJ_ROT: R = MJ_TO_VUER_ROT.inv()
+
+
+def mj2vuer_pos(pos: NDArray) -> NDArray:
+    return MJ_TO_VUER_ROT.apply(pos)
+
+
+def mj2vuer_orn(orn: NDArray) -> NDArray:
+    rot = R.from_quat(orn[XYZW_2_WXYZ]) * MJ_TO_VUER_ROT
+    return rot.as_euler("xyz")
+
+
+def vuer2mj_pos(pos: NDArray) -> NDArray:
+    return VUER_TO_MJ_ROT.apply(pos)
+
+
+def vuer2mj_orn(orn: R) -> NDArray:
+    rot = orn * VUER_TO_MJ_ROT
+    return rot.as_quat()[WXYZ_2_XYZW]
+
 
 register(
     id="KManipSoloArm",
@@ -149,6 +189,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_SOLO_ARM_HOME,
+        "q_dict": Q_SOLO_ARM_HOME_DICT,
+        "q_keys": Q_SOLO_ARM_KEYS,
     },
 )
 
@@ -162,8 +204,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_head",  # robot head camera
-            "cam_grip_r",  # right gripper camera
+            "camera/head",  # robot head camera
+            "camera/grip_r",  # right gripper camera
         ],
         "act_list": [
             "eer_pos",  # right end effector position
@@ -171,6 +213,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_SOLO_ARM_HOME,
+        "q_dict": Q_SOLO_ARM_HOME_DICT,
+        "q_keys": Q_SOLO_ARM_KEYS,
     },
 )
 
@@ -194,6 +238,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_DUAL_ARM_HOME,
+        "q_dict": Q_DUAL_ARM_HOME_DICT,
+        "q_keys": Q_DUAL_ARM_KEYS,
     },
 )
 
@@ -207,9 +253,9 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_head",  # robot head camera
-            "cam_grip_l",  # left gripper camera
-            "cam_grip_r",  # right gripper camera
+            "camera/head",  # robot head camera
+            "camera/grip_l",  # left gripper camera
+            "camera/grip_r",  # right gripper camera
         ],
         "act_list": [
             "eel_pos",  # left end effector position
@@ -220,6 +266,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_DUAL_ARM_HOME,
+        "q_dict": Q_DUAL_ARM_HOME_DICT,
+        "q_keys": Q_DUAL_ARM_KEYS,
     },
 )
 
@@ -243,6 +291,8 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_FULL_BODY_HOME,
+        "q_dict": Q_FULL_BODY_HOME_DICT,
+        "q_keys": Q_FULL_BODY_KEYS,
     },
 )
 
@@ -256,9 +306,9 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_head",  # robot head camera
-            "cam_grip_l",  # left gripper camera
-            "cam_grip_r",  # right gripper camera
+            "camera/head",  # robot head camera
+            "camera/grip_l",  # left gripper camera
+            "camera/grip_r",  # right gripper camera
         ],
         "act_list": [
             "eel_pos",  # left end effector position
@@ -269,5 +319,7 @@ register(
             "grip_r",  # right gripper
         ],
         "q_home": Q_FULL_BODY_HOME,
+        "q_dict": Q_FULL_BODY_HOME_DICT,
+        "q_keys": Q_FULL_BODY_KEYS,
     },
 )

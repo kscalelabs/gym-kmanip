@@ -1,7 +1,9 @@
 from collections import OrderedDict
-import math
+from datetime import datetime
 import os
+import time
 from typing import List
+import uuid
 
 from dm_control import mujoco
 from dm_control.suite import base
@@ -11,9 +13,11 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from numpy.typing import NDArray
+import rerun as rr
 
 import gym_kmanip as k
 from gym_kmanip.ik_mujoco import ik
+from gym_kmanip.rr_blueprint import make_blueprint
 
 
 # Task contains the mujoco logic, based on dm_control suite
@@ -43,17 +47,17 @@ class KManipTask(base.Task):
         ctrl: NDArray = physics.data.ctrl.copy().astype(np.float32)
         if "eer_pos" in action:
             np.copyto(physics.data.mocap_pos[k.MOCAP_ID_R], action["eer_pos"])
-        if "eer_orn" in self.gym_env.act_list:
+        if "eer_orn" in action:
             np.copyto(physics.data.mocap_quat[k.MOCAP_ID_R], action["eer_orn"])
-        if "eel_pos" in self.gym_env.act_list:
+        if "eel_pos" in action:
             np.copyto(physics.data.mocap_pos[k.MOCAP_ID_L], action["eel_pos"])
-        if "eel_orn" in self.gym_env.act_list:
+        if "eel_orn" in action:
             np.copyto(physics.data.mocap_quat[k.MOCAP_ID_L], action["eel_orn"])
-        if "grip_r" in self.gym_env.act_list:
+        if "grip_r" in action:
             grip_slider_r: float = k.EE_S_MIN + float(action["grip_r"]) * k.EE_S_RANGE
             ctrl[k.CTRL_ID_R_GRIP] = grip_slider_r
             ctrl[k.CTRL_ID_R_GRIP + 1] = grip_slider_r
-        if "grip_l" in self.gym_env.act_list:
+        if "grip_l" in action:
             grip_slider_l: float = k.EE_S_MIN + float(action["grip_l"]) * k.EE_S_RANGE
             ctrl[k.CTRL_ID_L_GRIP] = grip_slider_l
             ctrl[k.CTRL_ID_L_GRIP + 1] = grip_slider_l
@@ -91,30 +95,15 @@ class KManipTask(base.Task):
             obs["q_pos"] = physics.data.qpos.copy()
         if "q_vel" in self.gym_env.obs_list:
             obs["q_vel"] = physics.data.qvel.copy()
-        if "cam_top" in self.gym_env.obs_list:
-            obs["cam_top"] = physics.render(
-                height=k.CAM_TOP_IMG_HEIGHT,
-                width=k.CAM_TOP_IMG_WIDTH,
-                camera_id="top",
-            ).copy()
-        if "cam_head" in self.gym_env.obs_list:
-            obs["cam_head"] = physics.render(
-                height=k.CAM_HEAD_IMG_HEIGHT,
-                width=k.CAM_HEAD_IMG_WIDTH,
-                camera_id="head",
-            ).copy()
-        if "cam_grip_l" in self.gym_env.obs_list:
-            obs["cam_grip_l"] = physics.render(
-                height=k.CAM_GRIP_IMG_HEIGHT,
-                width=k.CAM_GRIP_IMG_WIDTH,
-                camera_id="grip_l",
-            ).copy()
-        if "cam_grip_r" in self.gym_env.obs_list:
-            obs["cam_grip_r"] = physics.render(
-                height=k.CAM_GRIP_IMG_HEIGHT,
-                width=k.CAM_GRIP_IMG_WIDTH,
-                camera_id="grip_r",
-            ).copy()
+
+        for obs_name in self.gym_env.obs_list:
+            if "camera" in obs_name:
+                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+                obs[obs_name] = physics.render(
+                    height=cam.h,
+                    width=cam.w,
+                    camera_id=cam.name,
+                ).copy()
         return obs
 
     def get_reward(self, physics) -> float:
@@ -162,10 +151,10 @@ class KManipEnv(gym.Env):
         obs_list: List[str] = [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cam_top",  # overhead camera
-            "cam_head",  # robot head camera
-            "cam_grip_l",  # left gripper camera
-            "cam_grip_r",  # right gripper camera
+            "camera/top",  # overhead camera
+            "camera/head",  # robot head camera
+            "camera/grip_l",  # left gripper camera
+            "camera/grip_r",  # right gripper camera
         ],
         act_list: List[str] = [
             "eel_pos",  # left end effector position
@@ -176,27 +165,46 @@ class KManipEnv(gym.Env):
             "grip_r",  # right gripper
         ],
         q_home: NDArray = None,
+        q_dict: OrderedDict[str, float] = None,
+        q_keys: List[str] = None,
+        log: bool = False,
     ):
         super().__init__()
         self.render_mode: str = render_mode
         self.seed: int = seed
+        self.episode_step: int = 0
         self.q_home: NDArray = q_home
         self.qpos_prev: NDArray = q_home
         self.q_len: int = len(q_home)
+        # joint dictionaries and keys are needed for teleop
+        self.q_dict: OrderedDict[str, float] = q_dict
+        self.q_keys: List[str] = q_keys
+        # optionally log using rerun
+        self.log: bool = log
+        if log:
+            log_uuid: str = str(uuid.uuid4())[:8]
+            log_datetime: str = datetime.now().strftime("%Y%m%d%H%M")
+            log_filename: str = f"{log_uuid}.{log_datetime}.rrd"
+            log_path: str = os.path.join(k.DATA_DIR, log_filename)
+            blueprint = make_blueprint(self.q_keys, obs_list, act_list)
+            rr.init("gym_kmanip", default_blueprint=blueprint)
+            rr.save(log_path, default_blueprint=blueprint)
+            rr.send_blueprint(blueprint=blueprint)
+            rr.log("meta/env_name", self.__class__.__name__)
+            rr.log("meta/seed", seed)
         # create dm_control task
         self.mj_env = control.Environment(
             mujoco.Physics.from_xml_path(os.path.join(k.ASSETS_DIR, xml_filename)),
             KManipTask(self, random=seed),
             control_timestep=k.CONTROL_TIMESTEP,
         )
-
         # observation space
         self.obs_list = obs_list
         _obs_dict: OrderedDict[str, spaces.Space] = OrderedDict()
         if "q_pos" in obs_list:
             _obs_dict["q_pos"] = spaces.Box(
-                low=np.array([-math.pi] * self.q_len),
-                high=np.array([math.pi] * self.q_len),
+                low=np.array([-2 * np.pi] * self.q_len),
+                high=np.array([2 * np.pi] * self.q_len),
                 dtype=np.float64,
             )
         if "q_vel" in obs_list:
@@ -205,36 +213,25 @@ class KManipEnv(gym.Env):
                 high=np.array([np.inf] * self.q_len),
                 dtype=np.float64,
             )
-        if "cam_top" in obs_list:
-            _obs_dict["cam_top"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_TOP_IMG_HEIGHT, k.CAM_TOP_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
-        if "cam_head" in obs_list:
-            _obs_dict["cam_head"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_HEAD_IMG_HEIGHT, k.CAM_HEAD_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
-        if "cam_grip_l" in obs_list:
-            _obs_dict["cam_grip_l"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_GRIP_IMG_HEIGHT, k.CAM_GRIP_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
-        if "cam_grip_r" in obs_list:
-            _obs_dict["cam_grip_r"] = spaces.Box(
-                low=0,
-                high=255,
-                shape=(k.CAM_GRIP_IMG_HEIGHT, k.CAM_GRIP_IMG_WIDTH, 3),
-                dtype=np.uint8,
-            )
+        for obs_name in obs_list:
+            if "camera" in obs_name:
+                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+                _obs_dict[obs_name] = spaces.Box(
+                    low=cam.low,
+                    high=cam.high,
+                    shape=(cam.h, cam.w, 3),
+                    dtype=cam.dtype,
+                )
+                if self.log:
+                    rr.log(
+                        f"world/{cam.name}",
+                        rr.Pinhole(
+                            resolution=[cam.w, cam.h],
+                            focal_length=cam.fl,
+                            principal_point=cam.pp,
+                        ),
+                    )
         self.observation_space = spaces.Dict(_obs_dict)
-
         # action space
         self.act_list = act_list
         _action_dict: OrderedDict[str, spaces.Space] = OrderedDict()
@@ -265,13 +262,14 @@ class KManipEnv(gym.Env):
         self.action_space = spaces.Dict(_action_dict)
 
     def render(self):
-        return self.mj_env.physics.render(
-            k.CAM_TOP_IMG_HEIGHT, k.CAM_TOP_IMG_WIDTH, camera_id="top"
-        )
+        # TODO: when is render actually used?
+        cam: k.Cam = k.CAMERAS["top"]
+        return self.mj_env.physics.render(cam.h, cam.w, camera_id=cam.name)
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         ts: TimeStep = self.mj_env.reset()
+        self.episode_step = 0
         ts.observation["q_pos"] = ts.observation["q_pos"][: self.q_len]
         ts.observation["q_vel"] = ts.observation["q_vel"][: self.q_len]
         info = {
@@ -283,6 +281,7 @@ class KManipEnv(gym.Env):
 
     def step(self, action):
         ts: TimeStep = self.mj_env.step(action)
+        self.episode_step += 1
         ts.observation["q_pos"] = ts.observation["q_pos"][: self.q_len]
         ts.observation["q_vel"] = ts.observation["q_vel"][: self.q_len]
         terminated: bool = ts.step_type == StepType.LAST
@@ -291,7 +290,55 @@ class KManipEnv(gym.Env):
             "cube_orn": ts.observation["q_pos"][-4:],
             "is_success": ts.reward > k.REWARD_SUCCESS_THRESHOLD,
         }
+        if self.log:
+            start_time = time.time()
+            rr.set_time_seconds("timestep", self.mj_env.physics.data.time)
+            rr.set_time_sequence("episode_step", self.episode_step)
+            if "eer_pos" in action:
+                rr.log(
+                    "world/eer",
+                    rr.Transform3D(
+                        translation=action["eer_pos"],
+                        rotation=rr.Quaternion(xyzw=action["eer_orn"][k.WXYZ_2_XYZW]),
+                    ),
+                )
+            if "eel_pos" in action:
+                rr.log(
+                    "world/eel",
+                    rr.Transform3D(
+                        translation=action["eel_pos"],
+                        rotation=rr.Quaternion(xyzw=action["eel_orn"][k.WXYZ_2_XYZW]),
+                    ),
+                )
+            if "grip_r" in action:
+                rr.log("action/grip_r", rr.Scalar(action["grip_r"]))
+            if "grip_l" in action:
+                rr.log("action/grip_l", rr.Scalar(action["grip_l"]))
+            for i, key in enumerate(self.q_keys):
+                rr.log(f"state/q_pos/{key}", rr.Scalar(ts.observation["q_pos"][i]))
+                rr.log(f"state/q_vel/{key}", rr.Scalar(ts.observation["q_vel"][i]))
+            rr.log(
+                "world/cube",
+                rr.Transform3D(
+                    translation=info["cube_pos"],
+                    rotation=rr.Quaternion(xyzw=info["cube_orn"][k.WXYZ_2_XYZW]),
+                ),
+            )
+            for obs_name in self.obs_list:
+                if "camera" in obs_name:
+                    cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+                    rr.log(f"camera/{cam.name}", rr.Image(ts.observation[obs_name]))
+                    pos = self.mj_env.physics.data.camera(cam.name).xpos.copy()
+                    orn = self.mj_env.physics.data.camera(cam.name).xmat.copy()
+                    rr.log(
+                        f"world/{cam.name}",
+                        rr.Transform3D(
+                            translation=pos,
+                        ),
+                    )
+            print(f"logging took {(time.time() - start_time) * 1000:.2f}ms")
         return ts.observation, ts.reward, terminated, False, info
 
     def close(self):
-        pass
+        if self.log:
+            rr.disconnect()

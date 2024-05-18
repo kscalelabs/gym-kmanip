@@ -3,13 +3,14 @@ import gymnasium as gym
 
 import gym_kmanip
 
-env_name = "KManipSoloArm"
-# env_name = "KManipSoloArmVision"
-# env_name = "KManipDualArm"
-# env_name = "KManipDualArmVision"
-# env_name = "KManipTorso"
-# env_name = "KManipTorsoVision"
-env = gym.make(env_name)
+# choose your environment
+# ENV_NAME: str = "KManipSoloArm"
+# ENV_NAME: str = "KManipSoloArmVision"
+# ENV_NAME: str = "KManipDualArm"
+# ENV_NAME: str = "KManipDualArmVision"
+ENV_NAME: str = "KManipTorso"
+# ENV_NAME: str = "KManipTorsoVision"
+env = gym.make(ENV_NAME)
 action_spec = env.unwrapped.mj_env.action_spec()
 
 

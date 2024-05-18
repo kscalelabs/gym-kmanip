@@ -1,7 +1,20 @@
 # TODO: WIP - DOES NOT WORK
 
-# Create and wrap the environment
-env = gym.make("InvertedPendulum-v4")
+import gymnasium as gym
+import numpy as np
+import torch
+
+import gym_kmanip
+
+# choose your environment
+# ENV_NAME: str = "KManipSoloArm"
+# ENV_NAME: str = "KManipSoloArmVision"
+# ENV_NAME: str = "KManipDualArm"
+# ENV_NAME: str = "KManipDualArmVision"
+ENV_NAME: str = "KManipTorso"
+# ENV_NAME: str = "KManipTorsoVision"
+env = gym.make(ENV_NAME)
+
 wrapped_env = gym.wrappers.RecordEpisodeStatistics(env, 50)  # Records episode-reward
 
 total_num_episodes = int(5e3)  # Total number of episodes
@@ -14,7 +27,6 @@ rewards_over_seeds = []
 for seed in [1, 2, 3, 5, 8]:  # Fibonacci seeds
     # set seed
     torch.manual_seed(seed)
-    random.seed(seed)
     np.random.seed(seed)
 
     # Reinitialize agent every seed

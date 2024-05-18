@@ -1,5 +1,5 @@
 <mujocoinclude>
-    <body name="link_left_arm_2_x8_1_inner_1">
+    <body name="link_left_arm_2_x8_1_inner_1" euler="3.1416 0 3.1416">
         <joint name="joint_left_arm_2_x8_1_dof_x8" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5708 1.5708" />
         <geom type="mesh" rgba="0.972549 0.529412 0.00392157 1" mesh="left_arm_2_x8_1_inner_1" />
         <geom pos="0 0.0155 -0.033" quat="-2.32051e-08 1 0 0" type="mesh" rgba="0.917647 0.917647 0.917647 1" mesh="left_arm_2_shoulder_inner_1" />
