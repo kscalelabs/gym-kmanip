@@ -43,7 +43,6 @@ class KManipTask(base.Task):
 
     def before_step(self, action, physics):
         q_pos: NDArray = physics.data.qpos[:].copy()
-
         ctrl: NDArray = physics.data.ctrl.copy().astype(np.float32)
         if "eer_pos" in action:
             np.copyto(physics.data.mocap_pos[k.MOCAP_ID_R], action["eer_pos"])
@@ -68,7 +67,8 @@ class KManipTask(base.Task):
                 goal_orn=action["eer_orn"],
                 ee_site="eer_site_pos",
                 q_mask=k.Q_MASK_R,
-                q_pos_home=self.gym_env.q_pos_prev,
+                q_pos_home=self.gym_env.q_pos_home,
+                q_pos_prev=self.gym_env.q_pos_prev,
             )
             self.gym_env.q_pos_prev = q_pos
         if "eel_pos" in action:
@@ -78,9 +78,12 @@ class KManipTask(base.Task):
                 goal_orn=action["eel_orn"],
                 ee_site="eel_site_pos",
                 q_mask=k.Q_MASK_L,
-                q_pos_home=self.gym_env.q_pos_prev,
+                q_pos_home=self.gym_env.q_pos_home,
+                q_pos_prev=self.gym_env.q_pos_prev,
             )
             self.gym_env.q_pos_prev = q_pos
+        if "q_pos" in action:
+            ctrl[:] = action["q_pos"]
         # exponential filter for smooth control
         ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl
         # TODO: debug why is this needed, try to remove

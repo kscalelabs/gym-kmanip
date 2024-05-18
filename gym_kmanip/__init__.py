@@ -98,7 +98,8 @@ MOCAP_ID_L: int = 1
 # IK hyperparameters
 # TODO: more tuning
 IK_RES_RAD: float = 0.02 # CONTROL_TIMESTEP
-IK_RES_REG: float = 3e-3
+IK_RES_REG_PREV: float = 3e-3
+IK_RES_REG_HOME: float = 1e-6
 IK_JAC_RAD: float = 0.02 # CONTROL_TIMESTEP
 IK_JAC_REG: float = 9e-3
 
@@ -193,6 +194,29 @@ register(
         "q_keys": Q_SOLO_ARM_KEYS,
     },
 )
+
+register(
+    id="KManipSoloArmQPos",
+    entry_point="gym_kmanip.env:KManipEnv",
+    max_episode_steps=MAX_EPISODE_STEPS,
+    nondeterministic=True,
+    kwargs={
+        "xml_filename": "_env_solo_arm.xml",
+        "obs_list": [
+            "q_pos",  # joint positions
+            "q_ik",  # joint positions from IK
+            "q_vel",  # joint velocities
+        ],
+        "act_list": [
+            "q_pos", # joint positions
+            "grip_r",  # right gripper
+        ],
+        "q_pos_home": Q_SOLO_ARM_HOME,
+        "q_dict": Q_SOLO_ARM_HOME_DICT,
+        "q_keys": Q_SOLO_ARM_KEYS,
+    },
+)
+
 
 register(
     id="KManipSoloArmVision",

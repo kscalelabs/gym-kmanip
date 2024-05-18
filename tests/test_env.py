@@ -9,6 +9,7 @@ import gym_kmanip
     "env_name",
     [
         "KManipSoloArm",
+        "KManipSoloArmQPos",
         "KManipSoloArmVision",
         "KManipDualArm",
         "KManipDualArmVision",

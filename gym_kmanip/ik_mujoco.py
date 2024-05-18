@@ -24,9 +24,11 @@ def ik_res(
     goal_orn: NDArray = None,
     q_mask: NDArray = None,
     q_pos_home: NDArray = None,
+    q_pos_prev: NDArray = None,
     ee_site: str = None,
     rad: float = k.IK_RES_RAD,
-    reg: float = k.IK_RES_REG,
+    reg_home: float = k.IK_RES_REG_HOME,
+    reg_prev: float = k.IK_RES_REG_PREV,
 ) -> NDArray:
     # forward kinematics
     physics.data.qpos[q_mask] = q_pos
@@ -43,8 +45,9 @@ def ik_res(
     mujoco.mju_subQuat(res_quat, goal_orn.flatten(), curr_quat)
     res_quat *= rad
     # regularization residual
-    res_reg = reg * (q_pos - q_pos_home)
-    return np.hstack((res_pos.flatten(), res_quat, res_reg))
+    res_reg_home = reg_home * (q_pos - q_pos_home)
+    res_reg_prev = reg_prev * (q_pos - q_pos_prev)
+    return np.hstack((res_pos.flatten(), res_quat, res_reg_prev, res_reg_home))
 
 
 def ik_jac(
@@ -88,7 +91,7 @@ def ik_jac(
     jac_pos = jac_pos[:, q_mask]
     jac_quat = jac_quat[:, q_mask]
     jac_reg = jac_reg[q_mask, :][:, q_mask]
-    return np.vstack((jac_pos, jac_quat, jac_reg))
+    return np.vstack((jac_pos, jac_quat, jac_reg, jac_reg))
 
 
 def ik(
@@ -97,6 +100,7 @@ def ik(
     goal_orn: NDArray = None,
     q_mask: NDArray = None,
     q_pos_home: NDArray = None,
+    q_pos_prev: NDArray = None,
     ee_site: str = None,
 ) -> NDArray:
     start_time = time.time()
@@ -112,6 +116,7 @@ def ik(
         goal_pos=goal_pos,
         goal_orn=goal_orn,
         q_pos_home=q_pos_home[q_mask],
+        q_pos_prev=q_pos_prev[q_mask],
         q_mask=q_mask,
         ee_site=ee_site,
     )
@@ -132,7 +137,7 @@ def ik(
         )
         q_pos = result.x
     except ValueError as e:
-        print(e)
+        print(f"IK failed: {e}")
     total_time = time.time() - start_time
     print(f"IK took {total_time*1000}ms")
     return q_pos
