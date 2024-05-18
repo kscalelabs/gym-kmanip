@@ -29,7 +29,7 @@ class KManipTask(base.Task):
     def initialize_episode(self, physics):
         physics.reset()
         # TODO: jitter starting joint angles
-        np.copyto(physics.data.qpos[: self.gym_env.q_len], self.gym_env.q_home)
+        np.copyto(physics.data.qpos[: self.gym_env.q_len], self.gym_env.q_pos_home)
         # randomize cube spawn
         cube_pos_x = self.random.uniform(*k.CUBE_SPAWN_RANGE_X)
         cube_pos_y = self.random.uniform(*k.CUBE_SPAWN_RANGE_Y)
@@ -68,9 +68,9 @@ class KManipTask(base.Task):
                 goal_orn=action["eer_orn"],
                 ee_site="eer_site_pos",
                 q_mask=k.Q_MASK_R,
-                q_home=self.gym_env.qpos_prev,
+                q_pos_home=self.gym_env.q_pos_prev,
             )
-            self.gym_env.qpos_prev = q_pos
+            self.gym_env.q_pos_prev = q_pos
         if "eel_pos" in action:
             ctrl[k.Q_MASK_L] = ik(
                 physics,
@@ -78,9 +78,9 @@ class KManipTask(base.Task):
                 goal_orn=action["eel_orn"],
                 ee_site="eel_site_pos",
                 q_mask=k.Q_MASK_L,
-                q_home=self.gym_env.qpos_prev,
+                q_pos_home=self.gym_env.q_pos_prev,
             )
-            self.gym_env.qpos_prev = q_pos
+            self.gym_env.q_pos_prev = q_pos
         # exponential filter for smooth control
         ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl
         # TODO: debug why is this needed, try to remove
@@ -163,8 +163,10 @@ class KManipEnv(gym.Env):
             "eer_orn",  # right end effector orientation
             "grip_l",  # left gripper
             "grip_r",  # right gripper
+            # TODO: add q targets
+            "q_pos",
         ],
-        q_home: NDArray = None,
+        q_pos_home: NDArray = None,
         q_dict: OrderedDict[str, float] = None,
         q_keys: List[str] = None,
         log: bool = False,
@@ -173,12 +175,15 @@ class KManipEnv(gym.Env):
         self.render_mode: str = render_mode
         self.seed: int = seed
         self.episode_step: int = 0
-        self.q_home: NDArray = q_home
-        self.qpos_prev: NDArray = q_home
-        self.q_len: int = len(q_home)
+        # home position of the robot
+        self.q_pos_home: NDArray = q_pos_home
+        # used for smooth control
+        self.q_pos_prev: NDArray = q_pos_home 
+        self.q_len: int = len(q_pos_home)
         # joint dictionaries and keys are needed for teleop
         self.q_dict: OrderedDict[str, float] = q_dict
         self.q_keys: List[str] = q_keys
+        assert len(q_keys) == self.q_len, "q parameters do not match"
         # optionally log using rerun
         self.log: bool = log
         if log:

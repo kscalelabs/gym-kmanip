@@ -97,9 +97,9 @@ MOCAP_ID_L: int = 1
 
 # IK hyperparameters
 # TODO: more tuning
-IK_RES_RAD: float = CONTROL_TIMESTEP
+IK_RES_RAD: float = 0.02 # CONTROL_TIMESTEP
 IK_RES_REG: float = 3e-3
-IK_JAC_RAD: float = CONTROL_TIMESTEP
+IK_JAC_RAD: float = 0.02 # CONTROL_TIMESTEP
 IK_JAC_REG: float = 9e-3
 
 
@@ -188,7 +188,7 @@ register(
             "eer_orn",  # right end effector orientation
             "grip_r",  # right gripper
         ],
-        "q_home": Q_SOLO_ARM_HOME,
+        "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
     },
@@ -212,7 +212,7 @@ register(
             "eer_orn",  # right end effector orientation
             "grip_r",  # right gripper
         ],
-        "q_home": Q_SOLO_ARM_HOME,
+        "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
     },
@@ -237,7 +237,7 @@ register(
             "grip_l",  # left gripper
             "grip_r",  # right gripper
         ],
-        "q_home": Q_DUAL_ARM_HOME,
+        "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
     },
@@ -265,7 +265,7 @@ register(
             "grip_l",  # left gripper
             "grip_r",  # right gripper
         ],
-        "q_home": Q_DUAL_ARM_HOME,
+        "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
     },
@@ -290,7 +290,7 @@ register(
             "grip_l",  # left gripper
             "grip_r",  # right gripper
         ],
-        "q_home": Q_FULL_BODY_HOME,
+        "q_pos_home": Q_FULL_BODY_HOME,
         "q_dict": Q_FULL_BODY_HOME_DICT,
         "q_keys": Q_FULL_BODY_KEYS,
     },
@@ -318,7 +318,7 @@ register(
             "grip_l",  # left gripper
             "grip_r",  # right gripper
         ],
-        "q_home": Q_FULL_BODY_HOME,
+        "q_pos_home": Q_FULL_BODY_HOME,
         "q_dict": Q_FULL_BODY_HOME_DICT,
         "q_keys": Q_FULL_BODY_KEYS,
     },

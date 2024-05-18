@@ -23,7 +23,7 @@ def ik_res(
     goal_pos: NDArray = None,
     goal_orn: NDArray = None,
     q_mask: NDArray = None,
-    q_home: NDArray = None,
+    q_pos_home: NDArray = None,
     ee_site: str = None,
     rad: float = k.IK_RES_RAD,
     reg: float = k.IK_RES_REG,
@@ -43,7 +43,7 @@ def ik_res(
     mujoco.mju_subQuat(res_quat, goal_orn.flatten(), curr_quat)
     res_quat *= rad
     # regularization residual
-    res_reg = reg * (q_pos - q_home)
+    res_reg = reg * (q_pos - q_pos_home)
     return np.hstack((res_pos.flatten(), res_quat, res_reg))
 
 
@@ -96,7 +96,7 @@ def ik(
     goal_pos: NDArray = None,
     goal_orn: NDArray = None,
     q_mask: NDArray = None,
-    q_home: NDArray = None,
+    q_pos_home: NDArray = None,
     ee_site: str = None,
 ) -> NDArray:
     start_time = time.time()
@@ -111,7 +111,7 @@ def ik(
         physics=physics,
         goal_pos=goal_pos,
         goal_orn=goal_orn,
-        q_home=q_home[q_mask],
+        q_pos_home=q_pos_home[q_mask],
         q_mask=q_mask,
         ee_site=ee_site,
     )
