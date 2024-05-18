@@ -8,9 +8,9 @@ from scipy.spatial.transform import Rotation as R
 # choose your environment
 # ENV_NAME: str = "KManipSoloArm"
 # ENV_NAME: str = "KManipSoloArmVision"
-# ENV_NAME: str = "KManipDualArm"
+ENV_NAME: str = "KManipDualArm"
 # ENV_NAME: str = "KManipDualArmVision"
-ENV_NAME: str = "KManipTorso"
+# ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
 env = gym.make(ENV_NAME)
 # start pos for reach targets
