@@ -39,7 +39,7 @@
 clone and install dependencies
 
 ```bash
-git clone https://github.com/hu-po/gym-kmanip.git && cd gym-kmanip
+git clone https://github.com/kscalelabs/gym-kmanip.git && cd gym-kmanip
 conda create -y -n gym-kmanip python=3.10 && conda activate gym-kmanip
 pip install -e .
 ```
@@ -121,7 +121,7 @@ rerun gym_kmanip/data/test.rrd
 
 - [Gymnasium](https://gymnasium.farama.org/) is used for environment
 - [MuJoCo](http://www.mujoco.org/) is used for physics simulation
-- [PyTouch](https://pytorch.org/) is used for model training
+- [PyTorch](https://pytorch.org/) is used for model training
 - [Rerun](https://github.com/rerun-io/rerun/) is used for logging datasets
 - [HuggingFace](https://huggingface.co/) is used for dataset & model storage 
 - [Vuer](https://github.com/vuer-ai/vuer) *teleop only* is used for visualization

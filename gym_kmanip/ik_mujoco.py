@@ -36,8 +36,10 @@ def ik_res(
     res_pos: NDArray = ee_pos - goal_pos
     # orientation residual
     curr_quat = np.empty(4)
+    # convert rotation matrix to quaternion
     mujoco.mju_mat2Quat(curr_quat, physics.data.site(ee_site).xmat)
     res_quat = np.empty(3)
+    # Subtract quaternions, express as 3D velocity
     mujoco.mju_subQuat(res_quat, goal_orn.flatten(), curr_quat)
     res_quat *= rad
     # regularization residual
@@ -134,3 +136,4 @@ def ik(
     total_time = time.time() - start_time
     print(f"IK took {total_time*1000}ms")
     return q_pos
+    # return q_home[q_mask]
