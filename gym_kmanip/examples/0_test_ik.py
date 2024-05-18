@@ -22,7 +22,7 @@ if "Solo" not in env_name:
 AMPLITUDE_X = 0.08
 AMPLITUDE_Y = 0.08
 AMPLITUDE_Z = 0.04
-PERIOD = 0.5 * math.pi
+PERIOD = 0.25 * math.pi
 X_ANGLE_AMPLITUDE = 0.4  # radians
 Y_ANGLE_AMPLITUDE = 0.4  # radians
 Z_ANGLE_AMPLITUDE = 0.6  # radians
@@ -60,6 +60,7 @@ def policy(ts):
         rotation_quat = R.from_euler('xyz', [angle_x, angle_y, angle_z]).as_quat()
         action["eel_orn"] = rotation_quat
         action["grip_l"] = math.sin(sim_time * PERIOD)
+
     return action
 
 viewer.launch(env.unwrapped.mj_env, policy=policy)

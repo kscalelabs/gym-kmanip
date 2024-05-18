@@ -39,6 +39,7 @@ class KManipTask(base.Task):
 
     def before_step(self, action, physics):
         q_pos: NDArray = physics.data.qpos[:].copy()
+
         ctrl: NDArray = physics.data.ctrl.copy().astype(np.float32)
         if "eer_pos" in action:
             np.copyto(physics.data.mocap_pos[k.MOCAP_ID_R], action["eer_pos"])
@@ -63,8 +64,9 @@ class KManipTask(base.Task):
                 goal_orn=action["eer_orn"],
                 ee_site="eer_site_pos",
                 q_mask=k.Q_MASK_R,
-                q_home=self.gym_env.q_home,
+                q_home=self.gym_env.qpos_prev,
             )
+            self.gym_env.qpos_prev = q_pos
         if "eel_pos" in action:
             ctrl[k.Q_MASK_L] = ik(
                 physics,
@@ -72,8 +74,9 @@ class KManipTask(base.Task):
                 goal_orn=action["eel_orn"],
                 ee_site="eel_site_pos",
                 q_mask=k.Q_MASK_L,
-                q_home=self.gym_env.q_home,
+                q_home=self.gym_env.qpos_prev,
             )
+            self.gym_env.qpos_prev = q_pos
         # exponential filter for smooth control
         ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl
         # TODO: debug why is this needed, try to remove
@@ -178,6 +181,7 @@ class KManipEnv(gym.Env):
         self.render_mode: str = render_mode
         self.seed: int = seed
         self.q_home: NDArray = q_home
+        self.qpos_prev: NDArray = q_home
         self.q_len: int = len(q_home)
         # create dm_control task
         self.mj_env = control.Environment(

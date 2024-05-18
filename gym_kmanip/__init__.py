@@ -83,7 +83,8 @@ Q_FULL_BODY_HOME: NDArray = np.array(
 
 # IK joint masks (computed separately for each arm)
 Q_MASK_R: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
-Q_MASK_L: NDArray = np.array([9, 10, 11, 12, 13, 14, 15])
+# TODO: check if this is correct
+Q_MASK_L: NDArray = np.array([10, 11, 12, 13, 14, 15, 16])
 
 # mocap objects are set by hand poses
 MOCAP_ID_R: int = 0
@@ -91,10 +92,10 @@ MOCAP_ID_L: int = 1
 
 # IK hyperparameters
 # TODO: more tuning
-IK_RES_RAD: float = 0.04
-IK_RES_REG: float = 1e-3
-IK_JAC_RAD: float = 0.04
-IK_JAC_REG: float = 1e-3
+IK_RES_RAD: float = CONTROL_TIMESTEP
+IK_RES_REG: float = 3e-3
+IK_JAC_RAD: float = CONTROL_TIMESTEP
+IK_JAC_REG: float = 9e-3
 
 # image sizes depend on camera
 CAM_HEAD_IMG_WIDTH: int = 640
