@@ -136,4 +136,3 @@ def ik(
     total_time = time.time() - start_time
     print(f"IK took {total_time*1000}ms")
     return q_pos
-    # return q_home[q_mask]
