@@ -73,32 +73,32 @@ Q_DUAL_ARM_HOME: NDArray = np.array(
 )
 Q_DUAL_ARM_KEYS: List[str] = list(Q_DUAL_ARM_HOME_DICT.keys())
 
-Q_FULL_BODY_HOME_DICT: OrderedDict[str, float] = OrderedDict()
-Q_FULL_BODY_HOME_DICT["joint_head_1_x4_1_dof_x4"] = -1.0
-Q_FULL_BODY_HOME_DICT["joint_head_1_x4_2_dof_x4"] = 0.0
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 1.7
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 1.6
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 0.34
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.6
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 1.4
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_x4_1_dof_x4"] = -0.26
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_x4_2_dof_x4"] = 0.0
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_slider_1"] = 0.0
-Q_FULL_BODY_HOME_DICT["joint_right_arm_1_hand_1_slider_2"] = 0.0
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x8_1_dof_x8"] = -1.7
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x8_2_dof_x8"] = -1.6
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x6_1_dof_x6"] = -0.34
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x6_2_dof_x6"] = -1.6
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_x4_1_dof_x4"] = -1.4
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_x4_1_dof_x4"] = -1.7
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_x4_2_dof_x4"] = 0.0
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_slider_1"] = 0.0
-Q_FULL_BODY_HOME_DICT["joint_left_arm_2_hand_1_slider_2"] = 0.0
-Q_FULL_BODY_HOME: NDArray = np.array(
-    [v for v in Q_FULL_BODY_HOME_DICT.values()],
+Q_TORSO_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_TORSO_HOME_DICT["joint_head_1_x4_1_dof_x4"] = -1.0
+Q_TORSO_HOME_DICT["joint_head_1_x4_2_dof_x4"] = 0.0
+Q_TORSO_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 1.7
+Q_TORSO_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 1.6
+Q_TORSO_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 0.34
+Q_TORSO_HOME_DICT["joint_right_arm_1_x6_2_dof_x6"] = 1.6
+Q_TORSO_HOME_DICT["joint_right_arm_1_x4_1_dof_x4"] = 1.4
+Q_TORSO_HOME_DICT["joint_right_arm_1_hand_1_x4_1_dof_x4"] = -0.26
+Q_TORSO_HOME_DICT["joint_right_arm_1_hand_1_slider_1"] = 0.0
+Q_TORSO_HOME_DICT["joint_right_arm_1_hand_1_slider_2"] = 0.0
+Q_TORSO_HOME_DICT["joint_right_arm_1_hand_1_x4_2_dof_x4"] = 0.0
+Q_TORSO_HOME_DICT["joint_left_arm_2_x8_1_dof_x8"] = -1.7
+Q_TORSO_HOME_DICT["joint_left_arm_2_x8_2_dof_x8"] = -1.6
+Q_TORSO_HOME_DICT["joint_left_arm_2_x6_1_dof_x6"] = -0.34
+Q_TORSO_HOME_DICT["joint_left_arm_2_x6_2_dof_x6"] = -1.6
+Q_TORSO_HOME_DICT["joint_left_arm_2_x4_1_dof_x4"] = -1.4
+Q_TORSO_HOME_DICT["joint_left_arm_2_hand_1_x4_1_dof_x4"] = -1.7
+Q_TORSO_HOME_DICT["joint_left_arm_2_hand_1_slider_1"] = 0.0
+Q_TORSO_HOME_DICT["joint_left_arm_2_hand_1_slider_2"] = 0.0
+Q_TORSO_HOME_DICT["joint_left_arm_2_hand_1_x4_2_dof_x4"] = 0.0
+Q_TORSO_HOME: NDArray = np.array(
+    [v for v in Q_TORSO_HOME_DICT.values()],
     dtype=np.float32,
 )
-Q_FULL_BODY_KEYS: List[str] = list(Q_FULL_BODY_HOME_DICT.keys())
+Q_TORSO_KEYS: List[str] = list(Q_TORSO_HOME_DICT.keys())
 
 # MuJoCo will have different IDs for q and ctrl based on environment
 Q_ID_R_MASK_SOLO: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
@@ -109,7 +109,7 @@ CTRL_ID_R_GRIP_DUAL: NDArray = np.array([8, 9])
 CTRL_ID_L_GRIP_DUAL: NDArray = np.array([18, 19])
 Q_ID_R_MASK_TORSO: NDArray = np.array([2, 3, 4, 5, 6, 7])
 Q_ID_L_MASK_TORSO: NDArray = np.array([11, 12, 13, 14, 15, 16])
-CTRL_ID_R_GRIP_TORSO: NDArray = np.array([9, 10])
+CTRL_ID_R_GRIP_TORSO: NDArray = np.array([8, 9])
 CTRL_ID_L_GRIP_TORSO: NDArray = np.array([17, 18])
 
 # mocap objects are set by hand poses
@@ -213,8 +213,8 @@ register(
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
-        "q_id_r_mask" : Q_ID_R_MASK_SOLO,
-        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_SOLO,
+        "q_id_r_mask": Q_ID_R_MASK_SOLO,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_SOLO,
     },
 )
 
@@ -238,8 +238,8 @@ register(
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
-        "q_id_r_mask" : Q_ID_R_MASK_SOLO,
-        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_SOLO,
+        "q_id_r_mask": Q_ID_R_MASK_SOLO,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_SOLO,
     },
 )
 
@@ -266,8 +266,8 @@ register(
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
-        "q_id_r_mask" : Q_ID_R_MASK_SOLO,
-        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_SOLO,
+        "q_id_r_mask": Q_ID_R_MASK_SOLO,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_SOLO,
     },
 )
 
@@ -294,10 +294,10 @@ register(
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
-        "q_id_r_mask" : Q_ID_R_MASK_DUAL,
-        "q_id_l_mask" : Q_ID_L_MASK_DUAL,
-        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_DUAL,
-        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_DUAL,
+        "q_id_r_mask": Q_ID_R_MASK_DUAL,
+        "q_id_l_mask": Q_ID_L_MASK_DUAL,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_DUAL,
+        "ctrl_id_l_grip": CTRL_ID_L_GRIP_DUAL,
     },
 )
 
@@ -327,10 +327,10 @@ register(
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
-        "q_id_r_mask" : Q_ID_R_MASK_DUAL,
-        "q_id_l_mask" : Q_ID_L_MASK_DUAL,
-        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_DUAL,
-        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_DUAL,
+        "q_id_r_mask": Q_ID_R_MASK_DUAL,
+        "q_id_l_mask": Q_ID_L_MASK_DUAL,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_DUAL,
+        "ctrl_id_l_grip": CTRL_ID_L_GRIP_DUAL,
     },
 )
 
@@ -354,13 +354,13 @@ register(
             "grip_l",  # left gripper
             "grip_r",  # right gripper
         ],
-        "q_pos_home": Q_FULL_BODY_HOME,
-        "q_dict": Q_FULL_BODY_HOME_DICT,
-        "q_keys": Q_FULL_BODY_KEYS,
-        "q_id_r_mask" : Q_ID_R_MASK_TORSO,
-        "q_id_l_mask" : Q_ID_L_MASK_TORSO,
-        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_TORSO,
-        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_TORSO,
+        "q_pos_home": Q_TORSO_HOME,
+        "q_dict": Q_TORSO_HOME_DICT,
+        "q_keys": Q_TORSO_KEYS,
+        "q_id_r_mask": Q_ID_R_MASK_TORSO,
+        "q_id_l_mask": Q_ID_L_MASK_TORSO,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_TORSO,
+        "ctrl_id_l_grip": CTRL_ID_L_GRIP_TORSO,
     },
 )
 
@@ -387,12 +387,12 @@ register(
             "grip_l",  # left gripper
             "grip_r",  # right gripper
         ],
-        "q_pos_home": Q_FULL_BODY_HOME,
-        "q_dict": Q_FULL_BODY_HOME_DICT,
-        "q_keys": Q_FULL_BODY_KEYS,
-        "q_id_r_mask" : Q_ID_R_MASK_TORSO,
-        "q_id_l_mask" : Q_ID_L_MASK_TORSO,
-        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_TORSO,
-        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_TORSO,
+        "q_pos_home": Q_TORSO_HOME,
+        "q_dict": Q_TORSO_HOME_DICT,
+        "q_keys": Q_TORSO_KEYS,
+        "q_id_r_mask": Q_ID_R_MASK_TORSO,
+        "q_id_l_mask": Q_ID_L_MASK_TORSO,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_TORSO,
+        "ctrl_id_l_grip": CTRL_ID_L_GRIP_TORSO,
     },
 )
