@@ -19,7 +19,7 @@ import gym_kmanip as k
 # ENV_NAME: str = "KManipDualArmVision"
 ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
-env = gym.make(ENV_NAME)
+env = gym.make(ENV_NAME, log=True, log_prefix="teleop")
 env.reset()
 mj_data = env.unwrapped.mj_env.physics.data
 mj_model = env.unwrapped.mj_env.physics.model
@@ -46,7 +46,7 @@ q: OrderedDict = env.unwrapped.q_dict
 # environment reset is controlled by gestures
 reset: bool = False
 # seconds to wait before next reset allowed, prevents accidental resets
-RESET_BACKOFF: float = 0.5
+RESET_BACKOFF: float = 1.0 # seconds
 last_reset: float = time.time()
 
 # gobal variables for hand pose and grip

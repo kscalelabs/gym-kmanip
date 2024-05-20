@@ -11,6 +11,9 @@ from scipy.spatial.transform import Rotation as R
 ASSETS_DIR: str = os.path.join(os.path.dirname(__file__), "assets")
 DATA_DIR: str = os.path.join(os.path.dirname(__file__), "data")
 
+# this one is the best, fight me
+DATE_FORMAT: str = "%mm%dd%Yy_%Hh%Mm"
+
 # MuJoCo uses XML files
 SOLO_ARM_MJCF: str = "_env_solo_arm.xml"
 DUAL_ARM_MJCF: str = "_env_dual_arm.xml"
@@ -24,7 +27,7 @@ TORSO_URDF: str = "stompy_tiny_glb/robot.urdf"
 FPS: int = 30
 MAX_EPISODE_STEPS: int = 100
 CONTROL_TIMESTEP: float = 0.02  # ms
-MAX_Q_VEL: float = np.pi # rad/s
+MAX_Q_VEL: float = np.pi  # rad/s
 
 Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
 Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0

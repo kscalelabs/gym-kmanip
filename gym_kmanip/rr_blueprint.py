@@ -6,10 +6,10 @@ import gym_kmanip as k
 
 
 def make_blueprint(
-    q_keys: List,
     obs_list: List[str],
     act_list: List[str],
 ):
+    """Blueprint is the GUI layout for ReRun."""
     time_series_views: List[rrb.SpaceView] = []
     if "q_pos" in obs_list:
         time_series_views.append(

@@ -173,6 +173,7 @@ class KManipEnv(gym.Env):
         q_dict: OrderedDict[str, float] = None,
         q_keys: List[str] = None,
         log: bool = False,
+        log_prefix: str = "test",
     ):
         super().__init__()
         self.render_mode: str = render_mode
@@ -191,15 +192,16 @@ class KManipEnv(gym.Env):
         self.log: bool = log
         if log:
             log_uuid: str = str(uuid.uuid4())[:8]
-            log_datetime: str = datetime.now().strftime("%Y%m%d%H%M")
-            log_filename: str = f"{log_uuid}.{log_datetime}.rrd"
+            log_datetime: str = datetime.now().strftime(k.DATE_FORMAT)
+            log_filename: str = f"{log_prefix}.{log_uuid}.{log_datetime}.rrd"
             log_path: str = os.path.join(k.DATA_DIR, log_filename)
-            blueprint = make_blueprint(self.q_keys, obs_list, act_list)
+            # blueprint is the GUI layout for rerun
+            blueprint = make_blueprint(obs_list, act_list)
             rr.init("gym_kmanip", default_blueprint=blueprint)
             rr.save(log_path, default_blueprint=blueprint)
             rr.send_blueprint(blueprint=blueprint)
-            rr.log("meta/env_name", self.__class__.__name__)
             rr.log("meta/seed", seed)
+            # TODO: log more metadata
         # robot descriptions
         self.mjcf_filename: str = mjcf_filename
         self.urdf_filename: str = urdf_filename
