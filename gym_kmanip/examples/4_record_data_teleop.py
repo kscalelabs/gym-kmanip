@@ -20,6 +20,7 @@ import gym_kmanip as k
 ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
 env = gym.make(ENV_NAME)
+env.reset()
 mj_data = env.unwrapped.mj_env.physics.data
 mj_model = env.unwrapped.mj_env.physics.model
 
@@ -42,21 +43,29 @@ URDF_WEB_PATH: str = (
 async_lock = asyncio.Lock()
 q: OrderedDict = env.unwrapped.q_dict
 
+# environment reset is controlled by gestures
+reset: bool = False
+# seconds to wait before next reset allowed, prevents accidental resets
+RESET_BACKOFF: float = 0.5
+last_reset: float = time.time()
+
 # gobal variables for hand pose and grip
 hr_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_R].copy()
 hr_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_R].copy()
+# capsules are used to help indicate orientation
 hr_capsule_a_size: NDArray = mj_model.site("hand_r_capsule_a").size
 hr_capsule_b_size: NDArray = mj_model.site("hand_r_capsule_b").size
-hr_capsule_a_offset: NDArray = mj_model.site("hand_r_capsule_a").quat
-hr_capsule_b_offset: NDArray = mj_model.site("hand_r_capsule_b").quat
+hr_capsule_a_offset: NDArray = mj_model.site("hand_r_capsule_a").quat.copy()
+hr_capsule_b_offset: NDArray = mj_model.site("hand_r_capsule_b").quat.copy()
+# grip command 0 = open, 1 = closed
 grip_r: float = 0.0
 if BIMANUAL:
     hl_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_L].copy()
     hl_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_L].copy()
     hl_capsule_a_size: NDArray = mj_model.site("hand_l_capsule_a").size
     hl_capsule_b_size: NDArray = mj_model.site("hand_l_capsule_b").size
-    hl_capsule_a_offset: NDArray = mj_model.site("hand_l_capsule_a").quat
-    hl_capsule_b_offset: NDArray = mj_model.site("hand_l_capsule_b").quat
+    hl_capsule_a_offset: NDArray = mj_model.site("hand_l_capsule_a").quat.copy()
+    hl_capsule_b_offset: NDArray = mj_model.site("hand_l_capsule_b").quat.copy()
     grip_l: float = 0.0
 # NOTE: these are not .copy() and will be updated by mujoco in the background
 cube_pos: NDArray = mj_data.body("cube").xpos
@@ -90,8 +99,15 @@ async def run_env() -> None:
         for i, val in enumerate(_q):
             joint_name = env.unwrapped.q_keys[i]
             q[joint_name] = val
-    _, reward, terminated, _, _ = env.step(action)
+    env.step(action)
     print(f"env step took {(time.time() - start_time) * 1000:.2f}ms")
+    async with async_lock:
+        global reset, last_reset
+        if reset and time.time() - last_reset > RESET_BACKOFF:
+            print("environment reset")
+            env.reset()
+            reset = False
+            last_reset = time.time()
 
 
 # Vuer rendering params
@@ -104,6 +120,7 @@ HAND_FPS: int = 30
 FINGER_INDEX: int = 9
 FINGER_THUMB: int = 4
 FINGER_MIDLE: int = 14
+FINGER_PINKY: int = 24
 PINCH_OPEN: float = 0.10  # 10cm
 PINCH_CLOSE: float = 0.01  # 1cm
 
@@ -115,8 +132,8 @@ async def hand_handler(event, _):
     # right hand
     rindex_pos: NDArray = np.array(event.value["rightLandmarks"][FINGER_INDEX])
     rthumb_pos: NDArray = np.array(event.value["rightLandmarks"][FINGER_THUMB])
-    rpinch_dist: NDArray = np.linalg.norm(rindex_pos - rthumb_pos)
     # index finger to thumb pinch turns on tracking
+    rpinch_dist: NDArray = np.linalg.norm(rindex_pos - rthumb_pos)
     if rpinch_dist < PINCH_CLOSE:
         print("Pinch detected in right hand")
         # pinching with middle finger controls gripper
@@ -134,6 +151,14 @@ async def hand_handler(event, _):
             print(f"goal_orn_eer {hr_orn}")
             grip_r = rgrip_dist
             print(f"right gripper at {grip_r}")
+    # pinky to thumb resets the environment (starts recording new episode)
+    rpinky_pos: NDArray = np.array(event.value["rightLandmarks"][FINGER_PINKY])
+    rpinky_dist: NDArray = np.linalg.norm(rthumb_pos - rpinky_pos)
+    if rpinky_dist < PINCH_CLOSE:
+        print("Reset detected in right hand")
+        async with async_lock:
+            global reset
+            reset = True
     if BIMANUAL:
         # left hand
         lindex_pos: NDArray = np.array(event.value["leftLandmarks"][FINGER_INDEX])
