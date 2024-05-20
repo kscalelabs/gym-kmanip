@@ -5,8 +5,10 @@
     <!-- remove joint property "actuatorfrcrange" -->
     <!-- remove the pos and quat of the arm body root -->
     <!-- place this camera and target inside the gripper -->
-    <body name="eer_site" pos="0 0 -0.15">
-        <site pos="0 0 0" size="0.01" type="sphere" name="eer_site" rgba="0 0 1 0.3"/>
+    <body name="eer_site" pos="0 0 -0.13">
+        <site name="eer_site_pos" pos="0 0 0" size="0.01" type="sphere" rgba="0 0.8 0.8 0.3"/>
+        <site name="eer_site_capsule_a" pos="0 0 0" size="0.005 0.02" type="capsule" rgba="0 0.8 0.8 0.3"/>
+        <site name="eer_site_capsule_b" pos="0 0 0" euler="0 1.5708 0" size="0.005 0.02" type="capsule" rgba="0 0.8 0.8 0.3"/>
     </body>
     <camera name="grip_r" pos="0 0.05 0" fovy="20" mode="targetbody" target="eer_site" />
 </mujocoinclude>
