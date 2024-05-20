@@ -11,9 +11,20 @@ from scipy.spatial.transform import Rotation as R
 ASSETS_DIR: str = os.path.join(os.path.dirname(__file__), "assets")
 DATA_DIR: str = os.path.join(os.path.dirname(__file__), "data")
 
+# MuJoCo uses XML files
+SOLO_ARM_MJCF: str = "_env_solo_arm.xml"
+DUAL_ARM_MJCF: str = "_env_dual_arm.xml"
+TORSO_MJCF: str = "_env_torso.xml"
+
+# Vuer and Rerun use URDF files
+SOLO_ARM_URDF: str = "stompy_tiny_solo_arm_glb.urdf"
+DUAL_ARM_URDF: str = "stompy_dual_arm_tiny_glb.urdf"
+TORSO_URDF: str = "stompy_tiny_glb.urdf"
+
 FPS: int = 30
 MAX_EPISODE_STEPS: int = 100
 CONTROL_TIMESTEP: float = 0.02  # ms
+MAX_Q_VEL: float = np.pi # rad/s
 
 Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
 Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
@@ -97,12 +108,13 @@ MOCAP_ID_L: int = 1
 
 # IK hyperparameters
 # TODO: more tuning
-IK_RES_RAD: float = 0.02 # CONTROL_TIMESTEP
+IK_RES_RAD: float = 0.02
 IK_RES_REG_PREV: float = 6e-3
 IK_RES_REG_HOME: float = 2e-6
-IK_JAC_RAD: float = 0.02 # CONTROL_TIMESTEP
+IK_JAC_RAD: float = 0.02
 IK_JAC_REG: float = 9e-3
 IK_MAX_VEL: float = 2.0
+
 
 @dataclass
 class Cam:
@@ -179,7 +191,8 @@ register(
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
-        "xml_filename": "_env_solo_arm.xml",
+        "mjcf_filename": SOLO_ARM_MJCF,
+        "urdf_filename": SOLO_ARM_URDF,
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
@@ -201,14 +214,15 @@ register(
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
-        "xml_filename": "_env_solo_arm.xml",
+        "mjcf_filename": SOLO_ARM_MJCF,
+        "urdf_filename": SOLO_ARM_URDF,
         "obs_list": [
             "q_pos",  # joint positions
             "q_ik",  # joint positions from IK
             "q_vel",  # joint velocities
         ],
         "act_list": [
-            "q_pos", # joint positions
+            "q_pos",  # joint positions
             "grip_r",  # right gripper
         ],
         "q_pos_home": Q_SOLO_ARM_HOME,
@@ -224,7 +238,8 @@ register(
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
-        "xml_filename": "_env_solo_arm.xml",
+        "mjcf_filename": SOLO_ARM_MJCF,
+        "urdf_filename": SOLO_ARM_URDF,
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
@@ -248,7 +263,8 @@ register(
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
-        "xml_filename": "_env_dual_arm.xml",
+        "mjcf_filename": DUAL_ARM_MJCF,
+        "urdf_filename": DUAL_ARM_URDF,
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
@@ -273,7 +289,8 @@ register(
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
-        "xml_filename": "_env_dual_arm.xml",
+        "mjcf_filename": DUAL_ARM_MJCF,
+        "urdf_filename": DUAL_ARM_URDF,
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
@@ -301,7 +318,8 @@ register(
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
-        "xml_filename": "_env_full_body.xml",
+        "mjcf_filename": TORSO_MJCF,
+        "urdf_filename": TORSO_URDF,
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
@@ -326,7 +344,8 @@ register(
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
-        "xml_filename": "_env_full_body.xml",
+        "mjcf_filename": TORSO_MJCF,
+        "urdf_filename": TORSO_URDF,
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities

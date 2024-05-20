@@ -53,11 +53,11 @@ class KManipTask(base.Task):
         if "eel_orn" in action:
             np.copyto(physics.data.mocap_quat[k.MOCAP_ID_L], action["eel_orn"])
         if "grip_r" in action:
-            grip_slider_r: float = k.EE_S_MIN + float(action["grip_r"]) * k.EE_S_RANGE
+            grip_slider_r: float = k.EE_S_MIN + action["grip_r"][0] * k.EE_S_RANGE
             ctrl[k.CTRL_ID_R_GRIP] = grip_slider_r
             ctrl[k.CTRL_ID_R_GRIP + 1] = grip_slider_r
         if "grip_l" in action:
-            grip_slider_l: float = k.EE_S_MIN + float(action["grip_l"]) * k.EE_S_RANGE
+            grip_slider_l: float = k.EE_S_MIN + action["grip_l"][0] * k.EE_S_RANGE
             ctrl[k.CTRL_ID_L_GRIP] = grip_slider_l
             ctrl[k.CTRL_ID_L_GRIP + 1] = grip_slider_l
         if "eer_pos" in action:
@@ -149,7 +149,6 @@ class KManipEnv(gym.Env):
     def __init__(
         self,
         seed: int = 0,
-        xml_filename: str = "_env_solo_arm.xml",
         render_mode: str = "rgb_array",
         obs_list: List[str] = [
             "q_pos",  # joint positions
@@ -168,6 +167,8 @@ class KManipEnv(gym.Env):
             "grip_r",  # right gripper
             "q_pos",  # joint positions
         ],
+        mjcf_filename: str = k.SOLO_ARM_MJCF,
+        urdf_filename: str = k.SOLO_ARM_URDF,
         q_pos_home: NDArray = None,
         q_dict: OrderedDict[str, float] = None,
         q_keys: List[str] = None,
@@ -199,9 +200,12 @@ class KManipEnv(gym.Env):
             rr.send_blueprint(blueprint=blueprint)
             rr.log("meta/env_name", self.__class__.__name__)
             rr.log("meta/seed", seed)
+        # robot descriptions
+        self.mjcf_filename: str = mjcf_filename
+        self.urdf_filename: str = urdf_filename
         # create dm_control task
         self.mj_env = control.Environment(
-            mujoco.Physics.from_xml_path(os.path.join(k.ASSETS_DIR, xml_filename)),
+            mujoco.Physics.from_xml_path(os.path.join(k.ASSETS_DIR, mjcf_filename)),
             KManipTask(self, random=seed),
             control_timestep=k.CONTROL_TIMESTEP,
         )
@@ -218,8 +222,8 @@ class KManipEnv(gym.Env):
             )
         if "q_vel" in obs_list:
             _obs_dict["q_vel"] = spaces.Box(
-                low=np.array([-np.inf] * self.q_len),
-                high=np.array([np.inf] * self.q_len),
+                low=np.array([-k.MAX_Q_VEL] * self.q_len),
+                high=np.array([k.MAX_Q_VEL] * self.q_len),
                 dtype=np.float64,
             )
         for obs_name in obs_list:

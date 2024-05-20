@@ -34,16 +34,9 @@ VISUAL: bool = False
 if "Vision" in ENV_NAME:
     VISUAL = True
 
-# pick the appropriate urdf
-if "SoloArm" in ENV_NAME:
-    URDF_NAME: str = "stompy_tiny_solo_arm_glb"
-if "DualArm" in ENV_NAME:
-    URDF_NAME: str = "stompy_dual_arm_tiny_glb"
-if "Torso" in ENV_NAME:
-    URDF_NAME: str = "stompy_tiny_glb"
 # Vuer requires a web link to the urdf for the headset
-URDF_LINK: str = (
-    f"https://raw.githubusercontent.com/kscalelabs/webstompy/master/urdf/{URDF_NAME}/robot.urdf"
+URDF_WEB_PATH: str = (
+    f"https://raw.githubusercontent.com/kscalelabs/webstompy/master/urdf/{env.urdf_filename}"
 )
 
 # global variables get updated by various async functions
@@ -171,7 +164,7 @@ async def main(session: VuerSession):
     session.upsert @ Hands(fps=HAND_FPS, stream=True, key="hands")
     await asyncio.sleep(0.1)
     session.upsert @ Urdf(
-        src=URDF_LINK,
+        src=URDF_WEB_PATH,
         jointValues=env.unwrapped.q_dict,
         position=k.mj2vuer_pos(robot_pos),
         rotation=k.mj2vuer_orn(robot_orn),
