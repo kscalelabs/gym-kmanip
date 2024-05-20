@@ -24,6 +24,7 @@ def ik_res(
     goal_orn: NDArray = None,
     q_mask: NDArray = None,
     q_home: NDArray = None,
+    q_pos_prev: NDArray = None,
     ee_site: str = None,
     rad: float = k.IK_RES_RAD,
     reg: float = k.IK_RES_REG,
@@ -42,8 +43,9 @@ def ik_res(
     # Subtract quaternions, express as 3D velocity
     mujoco.mju_subQuat(res_quat, goal_orn.flatten(), curr_quat)
     res_quat *= rad
-    # regularization residual
-    res_reg = reg * (q_pos - q_home)
+    # regularization residual, q_pos_prev is used for velocity smoothing
+    # q_home is used for null space regularization 
+    res_reg = reg * (2.0*q_pos - 1.5*q_home - q_pos_prev) # np.linalg.pinv(jac).T @
     return np.hstack((res_pos.flatten(), res_quat, res_reg))
 
 
@@ -97,21 +99,19 @@ def ik(
     goal_orn: NDArray = None,
     q_mask: NDArray = None,
     q_home: NDArray = None,
+    q_pos_prev: NDArray = None,
     ee_site: str = None,
 ) -> NDArray:
     start_time = time.time()
     q_pos: NDArray = physics.data.qpos[q_mask]
-    # TODO: debug why bounds causes issues
-    # bounds: Tuple[NDArray] = [
-    #     physics.model.jnt_range[q_mask, 0],
-    #     physics.model.jnt_range[q_mask, 1],
-    # ]
+
     ik_func = partial(
         ik_res,
         physics=physics,
         goal_pos=goal_pos,
         goal_orn=goal_orn,
         q_home=q_home[q_mask],
+        q_pos_prev=q_pos_prev[q_mask],
         q_mask=q_mask,
         ee_site=ee_site,
     )
@@ -130,10 +130,13 @@ def ik(
             # bounds=bounds,
             verbose=0,
         )
+        # clip to joint velocity limits
+        # np.clip(result.x, q_pos-k.IK_MAX_VEL*k.CONTROL_TIMESTEP, q_pos+k.IK_MAX_VEL*k.CONTROL_TIMESTEP, out=q_pos)
         q_pos = result.x
+        # clip to joint position limits
+        np.clip(q_pos, physics.model.jnt_range[q_mask, 0],physics.model.jnt_range[q_mask, 1], out=q_pos)
     except ValueError as e:
         print(e)
     total_time = time.time() - start_time
     print(f"IK took {total_time*1000}ms")
     return q_pos
-    # return q_home[q_mask]

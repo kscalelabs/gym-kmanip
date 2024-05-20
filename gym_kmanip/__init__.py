@@ -101,7 +101,7 @@ IK_RES_RAD: float = CONTROL_TIMESTEP
 IK_RES_REG: float = 3e-3
 IK_JAC_RAD: float = CONTROL_TIMESTEP
 IK_JAC_REG: float = 9e-3
-
+IK_MAX_VEL: float = 2.0
 
 @dataclass
 class Cam:

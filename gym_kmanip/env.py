@@ -68,7 +68,8 @@ class KManipTask(base.Task):
                 goal_orn=action["eer_orn"],
                 ee_site="eer_site_pos",
                 q_mask=k.Q_MASK_R,
-                q_home=self.gym_env.qpos_prev,
+                q_home=self.gym_env.q_home,
+                q_pos_prev=self.gym_env.qpos_prev,
             )
             self.gym_env.qpos_prev = q_pos
         if "eel_pos" in action:
@@ -78,7 +79,8 @@ class KManipTask(base.Task):
                 goal_orn=action["eel_orn"],
                 ee_site="eel_site_pos",
                 q_mask=k.Q_MASK_L,
-                q_home=self.gym_env.qpos_prev,
+                q_home=self.gym_env.q_home,
+                q_pos_prev=self.gym_env.qpos_prev,
             )
             self.gym_env.qpos_prev = q_pos
         # exponential filter for smooth control
