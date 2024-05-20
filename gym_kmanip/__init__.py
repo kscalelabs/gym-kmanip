@@ -171,8 +171,10 @@ def mj2vuer_pos(pos: NDArray) -> NDArray:
     return MJ_TO_VUER_ROT.apply(pos)
 
 
-def mj2vuer_orn(orn: NDArray) -> NDArray:
+def mj2vuer_orn(orn: NDArray, offset: NDArray = None) -> NDArray:
     rot = R.from_quat(orn[XYZW_2_WXYZ]) * MJ_TO_VUER_ROT
+    if offset is not None:
+        rot = rot * R.from_quat(offset[XYZW_2_WXYZ])
     return rot.as_euler("xyz")
 
 

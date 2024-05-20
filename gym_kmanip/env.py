@@ -341,12 +341,13 @@ class KManipEnv(gym.Env):
                 if "camera" in obs_name:
                     cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
                     rr.log(f"camera/{cam.name}", rr.Image(ts.observation[obs_name]))
-                    pos = self.mj_env.physics.data.camera(cam.name).xpos.copy()
-                    orn = self.mj_env.physics.data.camera(cam.name).xmat.copy()
+                    _quat: NDArray = np.empty(4)
+                    mujoco.mju_mat2Quat(_quat, self.mj_env.physics.data.camera(cam.name).xmat)
                     rr.log(
                         f"world/{cam.name}",
                         rr.Transform3D(
-                            translation=pos,
+                            translation=self.mj_env.physics.data.camera(cam.name).xpos,
+                            rotation=rr.Quaternion(xyzw=_quat[k.WXYZ_2_XYZW]),
                         ),
                     )
             print(f"logging took {(time.time() - start_time) * 1000:.2f}ms")

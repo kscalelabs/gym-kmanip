@@ -1,7 +1,6 @@
 import asyncio
 from collections import OrderedDict
 import time
-from typing import Dict
 
 import gymnasium as gym
 import numpy as np
@@ -36,7 +35,7 @@ if "Vision" in ENV_NAME:
 
 # Vuer requires a web link to the urdf for the headset
 URDF_WEB_PATH: str = (
-    f"https://raw.githubusercontent.com/kscalelabs/webstompy/master/urdf/{env.urdf_filename}"
+    f"https://raw.githubusercontent.com/kscalelabs/webstompy/master/urdf/{env.unwrapped.urdf_filename}"
 )
 
 # global variables get updated by various async functions
@@ -48,12 +47,16 @@ hr_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_R].copy()
 hr_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_R].copy()
 hr_capsule_a_size: NDArray = mj_model.site("hand_r_capsule_a").size
 hr_capsule_b_size: NDArray = mj_model.site("hand_r_capsule_b").size
+hr_capsule_a_offset: NDArray = mj_model.site("hand_r_capsule_a").quat
+hr_capsule_b_offset: NDArray = mj_model.site("hand_r_capsule_b").quat
 grip_r: float = 0.0
 if BIMANUAL:
     hl_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_L].copy()
     hl_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_L].copy()
     hl_capsule_a_size: NDArray = mj_model.site("hand_l_capsule_a").size
     hl_capsule_b_size: NDArray = mj_model.site("hand_l_capsule_b").size
+    hl_capsule_a_offset: NDArray = mj_model.site("hand_l_capsule_a").quat
+    hl_capsule_b_offset: NDArray = mj_model.site("hand_l_capsule_b").quat
     grip_l: float = 0.0
 # NOTE: these are not .copy() and will be updated by mujoco in the background
 cube_pos: NDArray = mj_data.body("cube").xpos
@@ -189,21 +192,37 @@ async def main(session: VuerSession):
         key="table",
     )
     session.upsert @ Capsule(
-        args=hr_size,
+        args=hr_capsule_a_size,
         position=k.mj2vuer_pos(hr_pos),
-        rotation=k.mj2vuer_orn(hr_orn),
+        rotation=k.mj2vuer_orn(hr_orn, offset=hr_capsule_a_offset),
         materialType="standard",
         material=dict(color="#0000ff"),
-        key="hr",
+        key="hand_r_capsule_a",
+    )
+    session.upsert @ Capsule(
+        args=hr_capsule_b_size,
+        position=k.mj2vuer_pos(hr_pos),
+        rotation=k.mj2vuer_orn(hr_orn, offset=hr_capsule_b_offset),
+        materialType="standard",
+        material=dict(color="#0000ff"),
+        key="hand_r_capsule_b",
     )
     if BIMANUAL:
         session.upsert @ Capsule(
-            args=hl_size,
+            args=hl_capsule_a_size,
             position=k.mj2vuer_pos(hl_pos),
-            rotation=k.mj2vuer_orn(hl_orn),
+            rotation=k.mj2vuer_orn(hl_orn, offset=hl_capsule_a_offset),
             materialType="standard",
             material=dict(color="#ff0000"),
-            key="hl",
+            key="hand_l_capsule_a",
+        )
+        session.upsert @ Capsule(
+            args=hl_capsule_b_size,
+            position=k.mj2vuer_pos(hl_pos),
+            rotation=k.mj2vuer_orn(hl_orn, offset=hl_capsule_b_offset),
+            materialType="standard",
+            material=dict(color="#ff0000"),
+            key="hand_l_capsule_b",
         )
     while True:
         await asyncio.gather(
@@ -225,12 +244,22 @@ async def main(session: VuerSession):
             )
             session.upsert @ Capsule(
                 position=k.mj2vuer_pos(hr_pos),
-                rotation=k.mj2vuer_orn(hr_orn),
-                key="hr",
+                rotation=k.mj2vuer_orn(hr_orn, offset=hr_capsule_a_offset),
+                key="hand_r_capsule_a",
+            )
+            session.upsert @ Capsule(
+                position=k.mj2vuer_pos(hr_pos),
+                rotation=k.mj2vuer_orn(hr_orn, offset=hr_capsule_b_offset),
+                key="hand_r_capsule_b",
             )
             if BIMANUAL:
                 session.upsert @ Capsule(
                     position=k.mj2vuer_pos(hl_pos),
-                    rotation=k.mj2vuer_orn(hl_orn),
-                    key="hl",
+                    rotation=k.mj2vuer_orn(hl_orn, offset=hl_capsule_a_offset),
+                    key="hand_l_capsule_a",
+                )
+                session.upsert @ Capsule(
+                    position=k.mj2vuer_pos(hl_pos),
+                    rotation=k.mj2vuer_orn(hl_orn, offset=hl_capsule_b_offset),
+                    key="hand_l_capsule_b",
                 )
