@@ -134,6 +134,7 @@ helpful links and repos
 - [gym-aloha](https://github.com/huggingface/gym-aloha)
 - [lerobot](https://github.com/huggingface/lerobot)
 - [universal_manipulation_interface](https://github.com/real-stanford/universal_manipulation_interface)
+- [loco-mujoco](https://github.com/robfiras/loco-mujoco)
 
 ### Citation
 
