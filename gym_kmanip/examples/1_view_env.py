@@ -42,7 +42,6 @@ L dblclick              Select
 R dblclick              Center
 Ctrl R dblclick / Esc   Track
 Ctrl [Shift] L/R drag   Perturb
-
 """
 
 viewer.launch(env.unwrapped.mj_env, policy=random_policy)

@@ -4,7 +4,7 @@
     <!-- make sure joints defined in body have limited="true" -->
     <!-- remove joint property "actuatorfrcrange" -->
     <!-- remove the pos and quat of the arm body root -->
-    <!-- place this camera and target inside the gripper -->
+    <!-- place this camera and target site inside the gripper -->
     <body name="eer_site" pos="0 -0.14 -0.08">
         <site name="eer_site_pos" pos="0 0 0" size="0.01" type="sphere" rgba="0 0.8 0.8 0.3"/>
         <site name="eer_site_capsule_a" pos="0 0 0" euler="0 0 1.5708" size="0.005 0.03" type="capsule" rgba="0 0.8 0.8 0.3"/>
