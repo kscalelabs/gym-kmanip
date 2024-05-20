@@ -100,10 +100,17 @@ Q_FULL_BODY_HOME: NDArray = np.array(
 )
 Q_FULL_BODY_KEYS: List[str] = list(Q_FULL_BODY_HOME_DICT.keys())
 
-# IK joint masks (computed separately for each arm)
-Q_MASK_R: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
-# TODO: check if this is correct
-Q_MASK_L: NDArray = np.array([10, 11, 12, 13, 14, 15, 16])
+# MuJoCo will have different IDs for q and ctrl based on environment
+Q_ID_R_MASK_SOLO: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
+CTRL_ID_R_GRIP_SOLO: NDArray = np.array([8, 9])
+Q_ID_R_MASK_DUAL: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
+Q_ID_L_MASK_DUAL: NDArray = np.array([10, 11, 12, 13, 14, 15, 16])
+CTRL_ID_R_GRIP_DUAL: NDArray = np.array([8, 9])
+CTRL_ID_L_GRIP_DUAL: NDArray = np.array([18, 19])
+Q_ID_R_MASK_TORSO: NDArray = np.array([2, 3, 4, 5, 6, 7])
+Q_ID_L_MASK_TORSO: NDArray = np.array([11, 12, 13, 14, 15, 16])
+CTRL_ID_R_GRIP_TORSO: NDArray = np.array([9, 10])
+CTRL_ID_L_GRIP_TORSO: NDArray = np.array([17, 18])
 
 # mocap objects are set by hand poses
 MOCAP_ID_R: int = 0
@@ -154,10 +161,6 @@ EE_S_MIN: float = 0.0
 EE_S_MAX: float = -0.034
 EE_S_RANGE: float = EE_S_MAX - EE_S_MIN
 EE_DEFAULT_ORN: NDArray = np.array([1, 0, 0, 0])
-
-# ctrl ids for gripping
-CTRL_ID_R_GRIP: int = 8
-CTRL_ID_L_GRIP: int = 18
 
 # exponential filtering for control signal
 CTRL_ALPHA: float = 0.2
@@ -210,6 +213,8 @@ register(
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
+        "q_id_r_mask" : Q_ID_R_MASK_SOLO,
+        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_SOLO,
     },
 )
 
@@ -233,6 +238,8 @@ register(
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
+        "q_id_r_mask" : Q_ID_R_MASK_SOLO,
+        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_SOLO,
     },
 )
 
@@ -259,6 +266,8 @@ register(
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
+        "q_id_r_mask" : Q_ID_R_MASK_SOLO,
+        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_SOLO,
     },
 )
 
@@ -285,6 +294,10 @@ register(
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
+        "q_id_r_mask" : Q_ID_R_MASK_DUAL,
+        "q_id_l_mask" : Q_ID_L_MASK_DUAL,
+        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_DUAL,
+        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_DUAL,
     },
 )
 
@@ -314,6 +327,10 @@ register(
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
+        "q_id_r_mask" : Q_ID_R_MASK_DUAL,
+        "q_id_l_mask" : Q_ID_L_MASK_DUAL,
+        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_DUAL,
+        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_DUAL,
     },
 )
 
@@ -340,6 +357,10 @@ register(
         "q_pos_home": Q_FULL_BODY_HOME,
         "q_dict": Q_FULL_BODY_HOME_DICT,
         "q_keys": Q_FULL_BODY_KEYS,
+        "q_id_r_mask" : Q_ID_R_MASK_TORSO,
+        "q_id_l_mask" : Q_ID_L_MASK_TORSO,
+        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_TORSO,
+        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_TORSO,
     },
 )
 
@@ -369,5 +390,9 @@ register(
         "q_pos_home": Q_FULL_BODY_HOME,
         "q_dict": Q_FULL_BODY_HOME_DICT,
         "q_keys": Q_FULL_BODY_KEYS,
+        "q_id_r_mask" : Q_ID_R_MASK_TORSO,
+        "q_id_l_mask" : Q_ID_L_MASK_TORSO,
+        "ctrl_id_r_grip" : CTRL_ID_R_GRIP_TORSO,
+        "ctrl_id_l_grip" : CTRL_ID_L_GRIP_TORSO,
     },
 )

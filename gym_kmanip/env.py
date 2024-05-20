@@ -53,31 +53,31 @@ class KManipTask(base.Task):
         if "eel_orn" in action:
             np.copyto(physics.data.mocap_quat[k.MOCAP_ID_L], action["eel_orn"])
         if "grip_r" in action:
-            grip_slider_r: float = k.EE_S_MIN + action["grip_r"] * k.EE_S_RANGE
-            ctrl[k.CTRL_ID_R_GRIP] = grip_slider_r
-            ctrl[k.CTRL_ID_R_GRIP + 1] = grip_slider_r
+            grip_slider_r = k.EE_S_MIN + action["grip_r"] * k.EE_S_RANGE
+            ctrl[self.gym_env.ctrl_id_r_grip[0]] = grip_slider_r
+            ctrl[self.gym_env.ctrl_id_r_grip[1]] = grip_slider_r
         if "grip_l" in action:
-            grip_slider_l: float = k.EE_S_MIN + action["grip_l"] * k.EE_S_RANGE
-            ctrl[k.CTRL_ID_L_GRIP] = grip_slider_l
-            ctrl[k.CTRL_ID_L_GRIP + 1] = grip_slider_l
+            grip_slider_l = k.EE_S_MIN + action["grip_l"] * k.EE_S_RANGE
+            ctrl[self.gym_env.ctrl_id_l_grip[0]] = grip_slider_l
+            ctrl[self.gym_env.ctrl_id_l_grip[1]] = grip_slider_l
         if "eer_pos" in action:
-            ctrl[k.Q_MASK_R] = ik(
+            ctrl[self.gym_env.q_id_r_mask] = ik(
                 physics,
                 goal_pos=action["eer_pos"],
                 goal_orn=action["eer_orn"],
                 ee_site="eer_site_pos",
-                q_mask=k.Q_MASK_R,
+                q_mask=self.gym_env.q_id_r_mask,
                 q_pos_home=self.gym_env.q_pos_home,
                 q_pos_prev=self.gym_env.q_pos_prev,
             )
             self.gym_env.q_pos_prev = q_pos
         if "eel_pos" in action:
-            ctrl[k.Q_MASK_L] = ik(
+            ctrl[self.gym_env.q_id_l_mask] = ik(
                 physics,
                 goal_pos=action["eel_pos"],
                 goal_orn=action["eel_orn"],
                 ee_site="eel_site_pos",
-                q_mask=k.Q_MASK_L,
+                q_mask=self.gym_env.q_id_l_mask,
                 q_pos_home=self.gym_env.q_pos_home,
                 q_pos_prev=self.gym_env.q_pos_prev,
             )
@@ -172,6 +172,10 @@ class KManipEnv(gym.Env):
         q_pos_home: NDArray = None,
         q_dict: OrderedDict[str, float] = None,
         q_keys: List[str] = None,
+        q_id_r_mask: NDArray = None,
+        q_id_l_mask: NDArray = None,
+        ctrl_id_r_grip: NDArray = None,
+        ctrl_id_l_grip: NDArray = None,
         log: bool = False,
         log_prefix: str = "test",
     ):
@@ -188,6 +192,12 @@ class KManipEnv(gym.Env):
         self.q_dict: OrderedDict[str, float] = q_dict
         self.q_keys: List[str] = q_keys
         assert len(q_keys) == self.q_len, "q parameters do not match"
+        # masks for the right and left arms
+        self.q_id_r_mask: NDArray = q_id_r_mask
+        self.q_id_l_mask: NDArray = q_id_l_mask
+        # control ids for the grippers
+        self.ctrl_id_r_grip: NDArray = ctrl_id_r_grip
+        self.ctrl_id_l_grip: NDArray = ctrl_id_l_grip
         # optionally log using rerun
         self.log: bool = log
         if log:
@@ -344,7 +354,9 @@ class KManipEnv(gym.Env):
                     cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
                     rr.log(f"camera/{cam.name}", rr.Image(ts.observation[obs_name]))
                     _quat: NDArray = np.empty(4)
-                    mujoco.mju_mat2Quat(_quat, self.mj_env.physics.data.camera(cam.name).xmat)
+                    mujoco.mju_mat2Quat(
+                        _quat, self.mj_env.physics.data.camera(cam.name).xmat
+                    )
                     rr.log(
                         f"world/{cam.name}",
                         rr.Transform3D(
