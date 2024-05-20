@@ -19,7 +19,7 @@ TORSO_MJCF: str = "_env_torso.xml"
 # Vuer and Rerun use URDF files
 SOLO_ARM_URDF: str = "stompy_tiny_solo_arm_glb.urdf"
 DUAL_ARM_URDF: str = "stompy_dual_arm_tiny_glb.urdf"
-TORSO_URDF: str = "stompy_tiny_glb.urdf"
+TORSO_URDF: str = "stompy_tiny_glb/robot.urdf"
 
 FPS: int = 30
 MAX_EPISODE_STEPS: int = 100

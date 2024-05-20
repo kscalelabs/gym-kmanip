@@ -53,11 +53,11 @@ class KManipTask(base.Task):
         if "eel_orn" in action:
             np.copyto(physics.data.mocap_quat[k.MOCAP_ID_L], action["eel_orn"])
         if "grip_r" in action:
-            grip_slider_r: float = k.EE_S_MIN + action["grip_r"][0] * k.EE_S_RANGE
+            grip_slider_r: float = k.EE_S_MIN + action["grip_r"] * k.EE_S_RANGE
             ctrl[k.CTRL_ID_R_GRIP] = grip_slider_r
             ctrl[k.CTRL_ID_R_GRIP + 1] = grip_slider_r
         if "grip_l" in action:
-            grip_slider_l: float = k.EE_S_MIN + action["grip_l"][0] * k.EE_S_RANGE
+            grip_slider_l: float = k.EE_S_MIN + action["grip_l"] * k.EE_S_RANGE
             ctrl[k.CTRL_ID_L_GRIP] = grip_slider_l
             ctrl[k.CTRL_ID_L_GRIP + 1] = grip_slider_l
         if "eer_pos" in action:

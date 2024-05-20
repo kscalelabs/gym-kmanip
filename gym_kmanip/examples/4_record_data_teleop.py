@@ -1,4 +1,5 @@
 import asyncio
+from collections import OrderedDict
 import time
 from typing import Dict
 
@@ -22,7 +23,6 @@ ENV_NAME: str = "KManipTorso"
 env = gym.make(ENV_NAME)
 mj_data = env.unwrapped.mj_env.physics.data
 mj_model = env.unwrapped.mj_env.physics.model
-env.reset()
 
 # is this environment bimanual?
 BIMANUAL: bool = True
@@ -41,17 +41,19 @@ URDF_WEB_PATH: str = (
 
 # global variables get updated by various async functions
 async_lock = asyncio.Lock()
-q: Dict[str, float] = env.unwrapped.q_dict
+q: OrderedDict = env.unwrapped.q_dict
 
 # gobal variables for hand pose and grip
 hr_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_R].copy()
 hr_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_R].copy()
-hr_size: NDArray = mj_model.site("hand_r_orn").size
+hr_capsule_a_size: NDArray = mj_model.site("hand_r_capsule_a").size
+hr_capsule_b_size: NDArray = mj_model.site("hand_r_capsule_b").size
 grip_r: float = 0.0
 if BIMANUAL:
     hl_pos: NDArray = mj_data.mocap_pos[k.MOCAP_ID_L].copy()
     hl_orn: NDArray = mj_data.mocap_quat[k.MOCAP_ID_L].copy()
-    hl_size: NDArray = mj_model.site("hand_l_orn").size
+    hl_capsule_a_size: NDArray = mj_model.site("hand_l_capsule_a").size
+    hl_capsule_b_size: NDArray = mj_model.site("hand_l_capsule_b").size
     grip_l: float = 0.0
 # NOTE: these are not .copy() and will be updated by mujoco in the background
 cube_pos: NDArray = mj_data.body("cube").xpos
