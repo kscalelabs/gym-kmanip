@@ -47,13 +47,13 @@
                     <body name="link_left_arm_2_hand_left_1_x4_2_inner_1" pos="-0.00120208 -0.020637 -0.0792" quat="-0.707107 0.707107 0 0">
                       <joint name="joint_left_arm_2_hand_left_1_x4_2_dof_x4" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14159 3.14159" />
                       <geom type="mesh" rgba="0.972549 0.529412 0.00392157 1" mesh="left_arm_2_hand_left_1_x4_2_inner_1" />
-                      <body name="eel_site" pos="0 0 -0.13">
-                        <site name="eel_site_pos" pos="0 0 0" size="0.01" type="sphere" rgba="0.8 0.8 0 0.3"/>
-                        <site name="eel_site_capsule_a" pos="0 0 0" size="0.005 0.02" type="capsule" rgba="0.8 0.8 0 0.3"/>
-                        <site name="eel_site_capsule_b" pos="0 0 0" euler="0 1.5708 0" size="0.005 0.02" type="capsule" rgba="0.8 0.8 0 0.3"/>
-                      </body>
-                      <camera name="grip_l" pos="0 0.05 0" fovy="20" mode="targetbody" target="eel_site" />
                     </body>
+                    <body name="eel_site" pos="0 -0.14 -0.08" quat="-0.707107 0.707107 0 0">
+                      <site name="eel_site_pos" pos="0 0 0" size="0.01" type="sphere" rgba="0.8 0.8 0 0.3"/>
+                      <site name="eel_site_capsule_a" pos="0 0 0" euler="0 0 1.5708" size="0.005 0.02" type="capsule" rgba="0.8 0.8 0 0.3"/>
+                      <site name="eel_site_capsule_b" pos="0 0 0" euler="0 1.5708 0" size="0.005 0.02" type="capsule" rgba="0.8 0.8 0 0.3"/>
+                    </body>
+                    <camera name="grip_l" pos="0 0.05 0" fovy="20" mode="targetbody" target="eel_site" />
                     <body name="link_left_arm_2_hand_left_1_slide_2" pos="-0.0762021 -0.073637 -0.0792" quat="0.5 0.5 -0.5 -0.5">
                       <joint name="joint_left_arm_2_hand_left_1_slider_3" pos="0 0 0" axis="0 0 1" limited="true" type="slide" range="-0.029 0.005" />
                       <geom type="mesh" rgba="0.615686 0.811765 0.929412 1" mesh="left_arm_2_hand_left_1_slide_2" />
