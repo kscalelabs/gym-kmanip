@@ -39,6 +39,7 @@ def ik_res(
     # orientation residual
     curr_quat = np.empty(4)
     # convert rotation matrix to quaternion
+    # TODO: ee_site might be in local coords, check mj_local2Global
     mujoco.mju_mat2Quat(curr_quat, physics.data.site(ee_site).xmat)
     res_quat = np.empty(3)
     # Subtract quaternions, express as 3D velocity
