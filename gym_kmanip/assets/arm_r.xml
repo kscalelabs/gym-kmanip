@@ -53,16 +53,5 @@
         <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="0" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_x4_2_dof_x4"/>
         <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="100" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_slider_3"/>
         <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="100" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_slider_1"/>
-
-        <!-- <velocity ctrllimited="true" ctrlrange="-2.0944 2.0944" kv="30" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x8_1_dof_x8"/>
-        <velocity ctrllimited="true" ctrlrange="0 1.91986" kv="30" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x8_2_dof_x8"/>
-        <velocity ctrllimited="true" ctrlrange="-1.0472 3.66519" kv="5" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x6_1_dof_x6"/>
-        <velocity ctrllimited="true" ctrlrange="-1.5708 1.5708" kv="5"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x6_2_dof_x6"/>
-        <velocity ctrllimited="true" ctrlrange="-3.14159 3.14159" kv="5" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_x4_1_dof_x4"/>
-        <velocity ctrllimited="true" ctrlrange="-3.14159 3.14159" kv="5"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_x4_3_dof_x4"/>
-        <velocity ctrllimited="true" ctrlrange="-2.61799 0.523599" kv="5"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_x4_1_dof_x4"/>
-        <velocity ctrllimited="true" ctrlrange="-3.14159 3.14159" kv="5" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_x4_2_dof_x4"/>
-        <velocity ctrllimited="true" ctrlrange="-0.029 0.005" kv="5" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_slider_3"/>
-        <velocity ctrllimited="true" ctrlrange="-0.029 0.005" kv="5" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_slider_1"/> -->
     </actuator>
 </mujocoinclude>
