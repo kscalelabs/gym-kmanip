@@ -166,8 +166,7 @@ class KManipEnv(gym.Env):
             "eer_orn",  # right end effector orientation
             "grip_l",  # left gripper
             "grip_r",  # right gripper
-            # TODO: add q targets
-            "q_pos",
+            "q_pos",  # joint positions
         ],
         q_pos_home: NDArray = None,
         q_dict: OrderedDict[str, float] = None,
@@ -181,7 +180,7 @@ class KManipEnv(gym.Env):
         # home position of the robot
         self.q_pos_home: NDArray = q_pos_home
         # used for smooth control
-        self.q_pos_prev: NDArray = q_pos_home 
+        self.q_pos_prev: NDArray = q_pos_home
         self.q_len: int = len(q_pos_home)
         # joint dictionaries and keys are needed for teleop
         self.q_dict: OrderedDict[str, float] = q_dict
@@ -206,6 +205,8 @@ class KManipEnv(gym.Env):
             KManipTask(self, random=seed),
             control_timestep=k.CONTROL_TIMESTEP,
         )
+        # TODO: eventually we wil need a self.real_robot_env, keeping the gymnasium env as the
+        #       common interface to both the real robot and the mujoco sim robot
         # observation space
         self.obs_list = obs_list
         _obs_dict: OrderedDict[str, spaces.Space] = OrderedDict()
