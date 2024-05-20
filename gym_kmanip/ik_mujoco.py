@@ -52,7 +52,6 @@ def ik_res(
     return np.hstack((res_pos.flatten(), res_quat, res_reg_prev, res_reg_home))
 
 
-
 def ik_jac(
     q_pos: NDArray,
     physics: mujoco.Physics = None,
@@ -108,7 +107,6 @@ def ik(
 ) -> NDArray:
     start_time = time.time()
     q_pos: NDArray = physics.data.qpos[q_mask]
-
     ik_func = partial(
         ik_res,
         physics=physics,
@@ -131,14 +129,23 @@ def ik(
             ik_func,
             q_pos,
             jac=ik_jac_func,
-            # bounds=bounds,
             verbose=0,
         )
-        # clip to joint velocity limits
-        # np.clip(result.x, q_pos-k.IK_MAX_VEL*k.CONTROL_TIMESTEP, q_pos+k.IK_MAX_VEL*k.CONTROL_TIMESTEP, out=q_pos)
+        # TODO: clip to joint velocity limits
+        # np.clip(
+        #     result.x,
+        #     q_pos - k.IK_MAX_VEL * k.CONTROL_TIMESTEP,
+        #     q_pos + k.IK_MAX_VEL * k.CONTROL_TIMESTEP,
+        #     out=q_pos,
+        # )
         q_pos = result.x
         # clip to joint position limits
-        np.clip(q_pos, physics.model.jnt_range[q_mask, 0],physics.model.jnt_range[q_mask, 1], out=q_pos)
+        np.clip(
+            q_pos,
+            physics.model.jnt_range[q_mask, 0],
+            physics.model.jnt_range[q_mask, 1],
+            out=q_pos,
+        )
     except ValueError as e:
         print(f"IK failed: {e}")
     total_time = time.time() - start_time
