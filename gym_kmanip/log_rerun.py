@@ -48,6 +48,7 @@ def new(
     log_path = os.path.join(data_dir_path, f"{log_filename}.rrd")
     rr.save(log_path, default_blueprint=blueprint)
     rr.send_blueprint(blueprint=blueprint)
+    # TODO: log metadata from info dict
 
 
 def end():

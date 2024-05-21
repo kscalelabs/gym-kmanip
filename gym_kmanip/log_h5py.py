@@ -7,21 +7,26 @@ from numpy.typing import NDArray
 import gym_kmanip as k
 
 
-def new(log_filename: str, data_dir_path: str) -> h5py.Group:
+def new(
+    log_filename: str,
+    data_dir_path: str,
+    info: Dict[str, Any],
+) -> h5py.Group:
     log_path = os.path.join(data_dir_path, f"{log_filename}.hdf5")
     f = h5py.File(log_path, "a")
-    g = f.create_group("state")
+    g = f.create_group("metadata")
+    for key, value in info.items():
+        try:
+            g.attrs[key] = value
+        except TypeError:
+            print(f"Could not save {key}={value}")
+    g = f.create_group("data")
     return g
 
 
 def end(g: h5py.Group) -> None:
     if g is not None:
         g.file.close()
-
-
-def meta(g: h5py.Group, **kwargs) -> None:
-    for key, value in kwargs.items():
-        g.attrs[key] = value
 
 
 def cam(g: h5py.Group, cam: k.Cam) -> None:
@@ -47,12 +52,6 @@ def step(
     action_group = step_group.create_group("action")
     for key, value in action.items():
         action_group.create_dataset(key, data=value)
-    observation_group = step_group.create_group("observation")
+    state_group = step_group.create_group("state")
     for key, value in observation.items():
-        observation_group.create_dataset(key, data=value)
-    info_group = step_group.create_group("info")
-    for key, value in info.items():
-        if isinstance(value, (int, float, str)):
-            info_group.attrs[key] = value
-        else:
-            info_group.create_dataset(key, data=value)
+        state_group.create_dataset(key, data=value)

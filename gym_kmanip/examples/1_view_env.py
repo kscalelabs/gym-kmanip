@@ -4,19 +4,18 @@ import gymnasium as gym
 import gym_kmanip
 
 # choose your environment
-ENV_NAME: str = "KManipSoloArm"
+# ENV_NAME: str = "KManipSoloArm"
 # ENV_NAME: str = "KManipSoloArmQPos"
 # ENV_NAME: str = "KManipSoloArmVision"
-# ENV_NAME: str = "KManipDualArm"
+ENV_NAME: str = "KManipDualArm"
 # ENV_NAME: str = "KManipDualArmVision"
 # ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
 env = gym.make(ENV_NAME)
 env.reset()
-action_spec = env.unwrapped.mj_env.action_spec()
 
 
-def random_policy(_):
+def policy(_):
     return env.action_space.sample()
 
 
@@ -45,4 +44,4 @@ Ctrl R dblclick / Esc   Track
 Ctrl [Shift] L/R drag   Perturb
 """
 
-viewer.launch(env.unwrapped.mj_env, policy=random_policy)
+viewer.launch(env.unwrapped.mj_env, policy=policy)

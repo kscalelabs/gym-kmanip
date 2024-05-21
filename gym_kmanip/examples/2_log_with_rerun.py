@@ -1,7 +1,4 @@
-import os
-
 import gymnasium as gym
-import numpy as np
 
 import gym_kmanip as k
 
@@ -16,15 +13,10 @@ ENV_NAME: str = "KManipDualArmVision"
 env = gym.make(ENV_NAME, log_rerun=True, log_prefix="rerun_test")
 env.reset()
 
+print(f'Running the {ENV_NAME} environment for {k.MAX_EPISODE_STEPS} steps')
 for _ in range(k.MAX_EPISODE_STEPS):
     action = env.action_space.sample()
-    if "eer_pos" in action:
-        action["eer_pos"] = env.unwrapped.mj_env.physics.data.body("cube").xpos
-        action["eer_orn"] = np.array([1, 0, 0, 0])
-    if "eel_pos" in action:
-        action["eel_pos"] = env.unwrapped.mj_env.physics.data.body("cube").xpos
-        action["eel_orn"] = np.array([1, 0, 0, 0])
-    observation, reward, terminated, truncated, info = env.step(action)
+    _, _, terminated, truncated, _ = env.step(action)
     if terminated or truncated:
         break
 

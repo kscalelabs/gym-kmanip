@@ -25,7 +25,7 @@ DUAL_ARM_URDF: str = "stompy_dual_arm_tiny_glb.urdf"
 TORSO_URDF: str = "stompy_tiny_glb/robot.urdf"
 
 FPS: int = 30
-MAX_EPISODE_STEPS: int = 100
+MAX_EPISODE_STEPS: int = 64
 CONTROL_TIMESTEP: float = 0.02  # ms
 MAX_Q_VEL: float = np.pi  # rad/s
 
