@@ -26,7 +26,7 @@ for _ in range(k.MAX_EPISODE_STEPS):
 
 env.close()
 
-log_path = os.path.join(k.DATA_DIR, f"{env.unwrapped.log_filename}.hdf5")
+log_path = os.path.join(env.unwrapped.log_dir, "episode_1.hdf5")
 print(f"Opening hdf5 file at \n\t{log_path}")
 f = h5py.File(log_path, "r")
 print("\nroot level keys:\n")
@@ -34,4 +34,5 @@ print(f.keys())
 print("\nmetadata:\n")
 pprint.pprint(dict(f['metadata'].attrs.items()))
 print("\ndata:\n")
-print(f['data']['step']['1']['action']['grip_r'][0])
+print(f['data/step/1/action/grip_r'][0])
+print(f['data/step/1/state/camera/grip_r'][0])

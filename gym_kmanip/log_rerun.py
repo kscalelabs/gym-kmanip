@@ -8,11 +8,8 @@ import rerun.blueprint as rrb
 import gym_kmanip as k
 
 
-def new(
-    log_filename: str,
-    data_dir_path: str,
-    info: Dict[str, Any],
-):
+def new(log_dir: str, info: Dict[str, Any]) -> None:
+    assert os.path.exists(log_dir), f"Directory {log_dir} does not exist"
     # Blueprint is the GUI layout for ReRun
     time_series_views: List[rrb.SpaceView] = []
     if "q_pos" in info["obs_list"]:
@@ -29,9 +26,7 @@ def new(
         )
     camera_views: List[rrb.SpaceView] = []
     for cam in info["cameras"]:
-        camera_views.append(
-            rrb.Spatial2DView(origin=cam.log_name, name=cam.name)
-        )
+        camera_views.append(rrb.Spatial2DView(origin=cam.log_name, name=cam.name))
     blueprint = rrb.Blueprint(
         rrb.Horizontal(
             rrb.Vertical(
@@ -45,7 +40,7 @@ def new(
         ),
     )
     rr.init("gym_kmanip", default_blueprint=blueprint)
-    log_path = os.path.join(data_dir_path, f"{log_filename}.rrd")
+    log_path: str = os.path.join(log_dir, f"episode_{info['episode']}.rrd")
     rr.save(log_path, default_blueprint=blueprint)
     rr.send_blueprint(blueprint=blueprint)
     # TODO: log metadata from info dict

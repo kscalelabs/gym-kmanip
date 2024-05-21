@@ -7,12 +7,9 @@ from numpy.typing import NDArray
 import gym_kmanip as k
 
 
-def new(
-    log_filename: str,
-    data_dir_path: str,
-    info: Dict[str, Any],
-) -> h5py.Group:
-    log_path = os.path.join(data_dir_path, f"{log_filename}.hdf5")
+def new(log_dir: str, info: Dict[str, Any]) -> h5py.Group:
+    assert os.path.exists(log_dir), f"Directory {log_dir} does not exist"
+    log_path: str = os.path.join(log_dir, f"episode_{info['episode']}.hdf5")
     f = h5py.File(log_path, "a")
     g = f.create_group("metadata")
     for key, value in info.items():
@@ -43,6 +40,9 @@ def step(
     observation: Dict[str, NDArray],
     info: Dict[str, Any],
 ) -> None:
+    # TODO: no way this is efficient, there is a "chunk" abstraction that
+    # should probably be used here
+    # https://docs.h5py.org/en/stable/high/dataset.html#chunked-storage
     step_group = g.create_group(f"step/{info['step']}")
     step_group.attrs["episode"] = info["episode"]
     step_group.attrs["sim_time"] = info["sim_time"]

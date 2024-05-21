@@ -25,7 +25,7 @@ env.close()
 """
 Look inside gym_kmanip/data for a .rrd file and run
 
-> rerun gym_kmanip/data/rerun_test.foo.rrd
+> rerun gym_kmanip/data/rerun_test.foo/foo.rrd
 
 this will open a GUI where you can visualize the run.
 """

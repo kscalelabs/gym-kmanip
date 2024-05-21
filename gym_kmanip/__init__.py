@@ -12,7 +12,7 @@ ASSETS_DIR: str = os.path.join(os.path.dirname(__file__), "assets")
 DATA_DIR: str = os.path.join(os.path.dirname(__file__), "data")
 
 # this one is the best, fight me
-DATE_FORMAT: str = "%mm%dd%Yy_%Hh%Mm%Ss"
+DATE_FORMAT: str = "%mm%dd%Yy_%Hh%Mm"
 
 # MuJoCo uses XML files
 SOLO_ARM_MJCF: str = "_env_solo_arm.xml"

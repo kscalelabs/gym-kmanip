@@ -214,11 +214,15 @@ class KManipEnv(gym.Env):
         # optionally log using rerun (viz/debug) or h5py (data)
         self.log_rerun: bool = log_rerun
         self.log_h5py: bool = log_h5py
-        # prefix, uuid, datetime are used to create log filename
-        self.log_prefix: str = log_prefix
-        self.log_filename: str = None
         if log_h5py or log_rerun:
-            self.reset_log_filename()
+            _log_dir_name: str = "{}.{}.{}".format(
+                log_prefix,
+                str(uuid.uuid4())[:6],
+                datetime.now().strftime(k.DATE_FORMAT),
+            )
+            self.log_dir = os.path.join(k.DATA_DIR, _log_dir_name)
+            os.makedirs(self.log_dir, exist_ok=True)
+            print(f"Creating log dir at {self.log_dir}")
         if log_h5py:
             from gym_kmanip.log_h5py import new, cam, step, end, h5py
 
@@ -324,29 +328,20 @@ class KManipEnv(gym.Env):
         cam: k.Cam = k.CAMERAS["top"]
         return self.mj_env.physics.render(cam.h, cam.w, camera_id=cam.name)
 
-    def reset_log_filename(self) -> str:
-        self.log_filename = "{}.{}.{}".format(
-            self.log_prefix,
-            str(uuid.uuid4())[:6],
-            datetime.now().strftime(k.DATE_FORMAT),
-        )
-
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         ts: TimeStep = self.mj_env.reset()
         self.step_idx = 0
         self.episode_idx += 1
-        self.info["step"] = (self.step_idx,)
-        self.info["episode"] = (self.episode_idx,)
+        self.info["step"] = self.step_idx
+        self.info["episode"] = self.episode_idx
         self.info["is_success"] = False
-        if self.log_h5py or self.log_rerun:
-            self.reset_log_filename()
         if self.log_h5py:
-            self.h5py_grp = self.log_h5py_funcs["new"](self.log_filename, k.DATA_DIR, self.info)
+            self.h5py_grp = self.log_h5py_funcs["new"](self.log_dir, self.info)
             for cam in self.cameras:
                 self.log_h5py_funcs["cam"](self.h5py_grp, cam)
         if self.log_rerun:
-            self.log_rerun_funcs["new"](self.log_filename, k.DATA_DIR, self.info)
+            self.log_rerun_funcs["new"](self.log_dir, self.info)
             for cam in self.cameras:
                 self.log_rerun_funcs["cam"](cam)
         return ts.observation, self.info
