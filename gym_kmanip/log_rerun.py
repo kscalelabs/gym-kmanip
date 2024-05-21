@@ -1,14 +1,99 @@
-from typing import List
+import os
+from typing import Any, Dict, List
 
+from numpy.typing import NDArray
+import rerun as rr
 import rerun.blueprint as rrb
 
 import gym_kmanip as k
 
 
-def make_blueprint(
+def make_log(
+    log_filename: str,
+    data_dir_path: str,
     obs_list: List[str],
     act_list: List[str],
 ):
+    blueprint = make_blueprint(obs_list, act_list)
+    rr.init("gym_kmanip", default_blueprint=blueprint)
+    log_path = os.path.join(data_dir_path, f"{log_filename}.rrd")
+    rr.save(log_path, default_blueprint=blueprint)
+    rr.send_blueprint(blueprint=blueprint)
+
+
+def log_metadata(**kwargs) -> None:
+    for key, value in kwargs.items():
+        rr.log(key, value)
+
+
+def log_cam(cam: k.Cam) -> None:
+    rr.log(
+        f"world/{cam.name}",
+        rr.Pinhole(
+            resolution=[cam.w, cam.h],
+            focal_length=cam.fl,
+            principal_point=cam.pp,
+        ),
+    )
+
+def log_step(
+    action: Dict[str, NDArray],
+    observation: Dict[str, NDArray],
+    info: Dict[str, Any],
+) -> None:
+    rr.set_time_seconds("timestep", info["sim_time"])
+    rr.set_time_sequence("step", info["step_idx"])
+    rr.set_time_sequence("episode", info["episode_idx"])
+    if "eer_pos" in action:
+        rr.log(
+            "world/eer",
+            rr.Transform3D(
+                translation=action["eer_pos"],
+                rotation=rr.Quaternion(xyzw=action["eer_orn"][k.WXYZ_2_XYZW]),
+            ),
+        )
+    if "eel_pos" in action:
+        rr.log(
+            "world/eel",
+            rr.Transform3D(
+                translation=action["eel_pos"],
+                rotation=rr.Quaternion(xyzw=action["eel_orn"][k.WXYZ_2_XYZW]),
+            ),
+        )
+    if "grip_r" in action:
+        rr.log("action/grip_r", rr.Scalar(action["grip_r"]))
+    if "grip_l" in action:
+        rr.log("action/grip_l", rr.Scalar(action["grip_l"]))
+    for i, key in enumerate(self.q_keys):
+        rr.log(f"state/q_pos/{key}", rr.Scalar(observation["q_pos"][i]))
+        rr.log(f"state/q_vel/{key}", rr.Scalar(observation["q_vel"][i]))
+    rr.log(
+        "world/cube",
+        rr.Transform3D(
+            translation=info["cube_pos"],
+            rotation=rr.Quaternion(xyzw=info["cube_orn"][k.WXYZ_2_XYZW]),
+        ),
+    )
+    for obs_name in self.obs_list:
+        if "camera" in obs_name:
+            cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+            rr.log(f"camera/{cam.name}", rr.Image(observation[obs_name]))
+            _quat: NDArray = np.empty(4)
+            mujoco.mju_mat2Quat(
+                _quat, self.mj_env.physics.data.camera(cam.name).xmat
+            )
+            rr.log(
+                f"world/{cam.name}",
+                rr.Transform3D(
+                    translation=self.mj_env.physics.data.camera(cam.name).xpos,
+                    rotation=rr.Quaternion(xyzw=_quat[k.WXYZ_2_XYZW]),
+                ),
+            )
+
+def make_blueprint(
+    obs_list: List[str],
+    act_list: List[str],
+) -> rrb.Blueprint:
     """Blueprint is the GUI layout for ReRun."""
     time_series_views: List[rrb.SpaceView] = []
     if "q_pos" in obs_list:

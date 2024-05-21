@@ -13,7 +13,7 @@ ENV_NAME: str = "KManipSoloArmVision"
 # ENV_NAME: str = "KManipDualArmVision"
 # ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
-env = gym.make(ENV_NAME, log=True, log_prefix="rerun_test")
+env = gym.make(ENV_NAME, log_rerun=True, log_prefix="rerun_test")
 env.reset()
 
 for _ in range(k.MAX_EPISODE_STEPS):

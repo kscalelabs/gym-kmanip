@@ -2,7 +2,7 @@ from collections import OrderedDict
 from datetime import datetime
 import os
 import time
-from typing import List
+from typing import Callable, Dict, List
 import uuid
 
 from dm_control import mujoco
@@ -13,11 +13,9 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from numpy.typing import NDArray
-import rerun as rr
 
 import gym_kmanip as k
 from gym_kmanip.ik_mujoco import ik
-from gym_kmanip.log_rerun import make_blueprint
 
 
 # Task contains the mujoco logic, based on dm_control suite
@@ -96,10 +94,10 @@ class KManipTask(base.Task):
         obs = OrderedDict()
         if "q_pos" in self.gym_env.obs_list:
             obs["q_pos"] = physics.data.qpos.copy()
-            obs["q_pos"] = obs["q_pos"][:self.gym_env.q_len]
+            obs["q_pos"] = obs["q_pos"][: self.gym_env.q_len]
         if "q_vel" in self.gym_env.obs_list:
             obs["q_vel"] = physics.data.qvel.copy()
-            obs["q_vel"] = obs["q_vel"][:self.gym_env.q_len]
+            obs["q_vel"] = obs["q_vel"][: self.gym_env.q_len]
         if "cube_pos" in self.gym_env.obs_list:
             obs["cube_pos"] = physics.data.qpos[-7:-4].copy()
             # TODO: normalize to spawn range
@@ -159,8 +157,8 @@ class KManipEnv(gym.Env):
         obs_list: List[str] = [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cube_pos", # cube position
-            "cube_orn", # cube orientation
+            "cube_pos",  # cube position
+            "cube_orn",  # cube orientation
             "camera/top",  # overhead camera
             "camera/head",  # robot head camera
             "camera/grip_l",  # left gripper camera
@@ -184,13 +182,16 @@ class KManipEnv(gym.Env):
         q_id_l_mask: NDArray = None,
         ctrl_id_r_grip: NDArray = None,
         ctrl_id_l_grip: NDArray = None,
-        log: bool = False,
         log_prefix: str = "test",
+        log_rerun: bool = False,
+        log_h5py: bool = False,
     ):
         super().__init__()
         self.render_mode: str = render_mode
         self.seed: int = seed
-        self.episode_step: int = 0
+        # counters for episode number and step number
+        self.step_idx: int = 0
+        self.episode_idx: int = 0
         # home position of the robot
         self.q_pos_home: NDArray = q_pos_home
         # used for smooth control
@@ -206,20 +207,39 @@ class KManipEnv(gym.Env):
         # control ids for the grippers
         self.ctrl_id_r_grip: NDArray = ctrl_id_r_grip
         self.ctrl_id_l_grip: NDArray = ctrl_id_l_grip
-        # optionally log using rerun
-        self.log: bool = log
-        if log:
-            log_uuid: str = str(uuid.uuid4())[:8]
-            log_datetime: str = datetime.now().strftime(k.DATE_FORMAT)
-            log_filename: str = f"{log_prefix}.{log_uuid}.{log_datetime}.rrd"
-            log_path: str = os.path.join(k.DATA_DIR, log_filename)
-            # blueprint is the GUI layout for rerun
-            blueprint = make_blueprint(obs_list, act_list)
-            rr.init("gym_kmanip", default_blueprint=blueprint)
-            rr.save(log_path, default_blueprint=blueprint)
-            rr.send_blueprint(blueprint=blueprint)
-            rr.log("meta/seed", seed)
-            # TODO: log more metadata
+        # optionally log using rerun (viz/debug) or h5py (data)
+        self.log_rerun: bool = log_rerun
+        self.log_h5py: bool = log_h5py
+        # prefix, uuid, datetime are used to create log filename
+        self.log_prefix: str = log_prefix
+        self.log_filename: str = None
+        if log_h5py or log_rerun:
+            self.reset_log_filename()
+        if log_h5py:
+            from gym_kmanip.log_h5py import make_log, log_cam, log_metadata, log_step
+
+            self.log_h5py_funcs: Dict[str, Callable] = {
+                "make_log": make_log,
+                "log_cam": log_cam,
+                "log_metadata": log_metadata,
+                "log_step": log_step,
+            }
+            self.h5py_grp = make_log(self.log_filename)
+        if log_rerun:
+            from gym_kmanip.log_rerun import make_log, log_cam, log_metadata, log_step
+
+            self.log_rerun_funcs: Dict[str, Callable] = {
+                "make_log": make_log,
+                "log_cam": log_cam,
+                "log_metadata": log_metadata,
+                "log_step": log_step,
+            }
+            make_log(
+                log_filename=self.log_filename,
+                data_dir_path=k.DATA_DIR,
+                obs_list=obs_list,
+                act_list=act_list,
+            )
         # robot descriptions
         self.mjcf_filename: str = mjcf_filename
         self.urdf_filename: str = urdf_filename
@@ -263,15 +283,10 @@ class KManipEnv(gym.Env):
                     shape=(cam.h, cam.w, 3),
                     dtype=cam.dtype,
                 )
-                if self.log:
-                    rr.log(
-                        f"world/{cam.name}",
-                        rr.Pinhole(
-                            resolution=[cam.w, cam.h],
-                            focal_length=cam.fl,
-                            principal_point=cam.pp,
-                        ),
-                    )
+                if self.log_rerun:
+                    self.log_rerun_funcs["log_cam"](cam)
+                if self.log_h5py:
+                    self.log_h5py_funcs["log_cam"](self.h5py_grp, cam)
         self.observation_space = spaces.Dict(_obs_dict)
         # action space
         self.act_list = act_list
@@ -307,76 +322,59 @@ class KManipEnv(gym.Env):
         cam: k.Cam = k.CAMERAS["top"]
         return self.mj_env.physics.render(cam.h, cam.w, camera_id=cam.name)
 
+    def reset_log_filename(self) -> str:
+        self.log_filename = '.'.join(
+            self.log_prefix,
+            str(uuid.uuid4())[:6],
+            datetime.now().strftime(k.DATE_FORMAT),
+        )
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         ts: TimeStep = self.mj_env.reset()
-        self.episode_step = 0
-        info = {"is_success": False}
+        self.step_idx = 0
+        self.episode_idx += 1
+        info = {
+            "step": self.step_idx,
+            "episode": self.episode_idx,
+            "is_success": False,
+        }
+        if self.log_h5py or self.log_rerun:
+            self.reset_log_filename()
+        if self.log_h5py:
+            self.h5py_grp = self.log_h5py_funcs["make_log"](
+                self.log_filename, k.DATA_DIR
+            )
+            self.log_h5py_funcs["log_metadata"](self.h5py_grp, **info)
+        if self.log_rerun:
+            self.log_rerun_funcs["make_log"](
+                self.log_filename, k.DATA_DIR, self.obs_list, self.act_list
+            )
+            self.log_rerun_funcs["log_metadata"](**info)
         return ts.observation, info
 
     def step(self, action):
         ts: TimeStep = self.mj_env.step(action)
-        self.episode_step += 1
-        ts.observation["q_pos"] = ts.observation["q_pos"][: self.q_len]
-        ts.observation["q_vel"] = ts.observation["q_vel"][: self.q_len]
+        self.step_idx += 1
         terminated: bool = ts.step_type == StepType.LAST
         info = {
-            "cube_pos": ts.observation["q_pos"][-7:-4],
-            "cube_orn": ts.observation["q_pos"][-4:],
+            "step": self.step_idx,
+            "episode": self.episode_idx,
+            "sim_time": self.mj_env.physics.data.time,
+            "cpu_time": time.time(),
+            "reward": ts.reward,
             "is_success": ts.reward > k.REWARD_SUCCESS_THRESHOLD,
         }
-        if self.log:
+        if self.log_rerun:
             start_time = time.time()
-            rr.set_time_seconds("timestep", self.mj_env.physics.data.time)
-            rr.set_time_sequence("episode_step", self.episode_step)
-            if "eer_pos" in action:
-                rr.log(
-                    "world/eer",
-                    rr.Transform3D(
-                        translation=action["eer_pos"],
-                        rotation=rr.Quaternion(xyzw=action["eer_orn"][k.WXYZ_2_XYZW]),
-                    ),
-                )
-            if "eel_pos" in action:
-                rr.log(
-                    "world/eel",
-                    rr.Transform3D(
-                        translation=action["eel_pos"],
-                        rotation=rr.Quaternion(xyzw=action["eel_orn"][k.WXYZ_2_XYZW]),
-                    ),
-                )
-            if "grip_r" in action:
-                rr.log("action/grip_r", rr.Scalar(action["grip_r"]))
-            if "grip_l" in action:
-                rr.log("action/grip_l", rr.Scalar(action["grip_l"]))
-            for i, key in enumerate(self.q_keys):
-                rr.log(f"state/q_pos/{key}", rr.Scalar(ts.observation["q_pos"][i]))
-                rr.log(f"state/q_vel/{key}", rr.Scalar(ts.observation["q_vel"][i]))
-            rr.log(
-                "world/cube",
-                rr.Transform3D(
-                    translation=info["cube_pos"],
-                    rotation=rr.Quaternion(xyzw=info["cube_orn"][k.WXYZ_2_XYZW]),
-                ),
-            )
-            for obs_name in self.obs_list:
-                if "camera" in obs_name:
-                    cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
-                    rr.log(f"camera/{cam.name}", rr.Image(ts.observation[obs_name]))
-                    _quat: NDArray = np.empty(4)
-                    mujoco.mju_mat2Quat(
-                        _quat, self.mj_env.physics.data.camera(cam.name).xmat
-                    )
-                    rr.log(
-                        f"world/{cam.name}",
-                        rr.Transform3D(
-                            translation=self.mj_env.physics.data.camera(cam.name).xpos,
-                            rotation=rr.Quaternion(xyzw=_quat[k.WXYZ_2_XYZW]),
-                        ),
-                    )
-            print(f"logging took {(time.time() - start_time) * 1000:.2f}ms")
+            self.log_rerun_funcs["log_step"](action, ts.observation, info)
+            print(f"logging w/ rerun took {(time.time() - start_time) * 1000:.2f}ms")
+        if self.log_h5py:
+            start_time = time.time()
+            self.log_h5py_funcs["log_step"](self.h5py_grp, action, ts.observation, info)
+            print(f"logging w/ h5py took {(time.time() - start_time) * 1000:.2f}ms")
         return ts.observation, ts.reward, terminated, False, info
 
     def close(self):
-        if self.log:
-            rr.disconnect()
+        # TODO: close out log files
+        pass

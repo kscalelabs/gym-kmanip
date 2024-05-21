@@ -122,7 +122,8 @@ rerun gym_kmanip/data/test.rrd
 - [Gymnasium](https://gymnasium.farama.org/) is used for environment
 - [MuJoCo](http://www.mujoco.org/) is used for physics simulation
 - [PyTorch](https://pytorch.org/) is used for model training
-- [Rerun](https://github.com/rerun-io/rerun/) is used for logging datasets
+- [Rerun](https://github.com/rerun-io/rerun/) is used for visualization
+- [H5Py](https://docs.h5py.org/en/stable/) is used for logging datasets
 - [HuggingFace](https://huggingface.co/) is used for dataset & model storage 
 - [Vuer](https://github.com/vuer-ai/vuer) *teleop only* is used for visualization
 - [ngrok](https://ngrok.com/download) *teleop only* is used for networking
