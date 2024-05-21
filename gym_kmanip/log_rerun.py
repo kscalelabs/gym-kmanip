@@ -47,8 +47,8 @@ def step(
     info: Dict[str, Any],
 ) -> None:
     rr.set_time_seconds("timestep", info["sim_time"])
-    rr.set_time_sequence("step", info["step_idx"])
-    rr.set_time_sequence("episode", info["episode_idx"])
+    rr.set_time_sequence("step", info["step"])
+    rr.set_time_sequence("episode", info["episode"])
     if "eer_pos" in action:
         rr.log(
             "world/eer",
@@ -75,8 +75,8 @@ def step(
     rr.log(
         "world/cube",
         rr.Transform3D(
-            translation=info["cube_pos"],
-            rotation=rr.Quaternion(xyzw=info["cube_orn"][k.WXYZ_2_XYZW]),
+            translation=observation["cube_pos"],
+            rotation=rr.Quaternion(xyzw=observation["cube_orn"][k.WXYZ_2_XYZW]),
         ),
     )
     for obs_name in info["obs_list"]:

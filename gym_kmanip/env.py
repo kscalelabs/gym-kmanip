@@ -225,7 +225,7 @@ class KManipEnv(gym.Env):
                 "step": step,
                 "end": end,
             }
-            self.h5py_grp = new(self.log_filename)
+            self.h5py_grp = new(self.log_filename, k.DATA_DIR)
         if log_rerun:
             from gym_kmanip.log_rerun import new, cam, meta, step, end
 
@@ -236,12 +236,7 @@ class KManipEnv(gym.Env):
                 "step": step,
                 "end": end,
             }
-            new(
-                log_filename=self.log_filename,
-                data_dir_path=k.DATA_DIR,
-                obs_list=obs_list,
-                act_list=act_list,
-            )
+            new(self.log_filename,k.DATA_DIR,obs_list,act_list)
         # robot descriptions
         self.mjcf_filename: str = mjcf_filename
         self.urdf_filename: str = urdf_filename
@@ -334,7 +329,7 @@ class KManipEnv(gym.Env):
         return self.mj_env.physics.render(cam.h, cam.w, camera_id=cam.name)
 
     def reset_log_filename(self) -> str:
-        self.log_filename = ".".join(
+        self.log_filename = "{}.{}.{}".format(
             self.log_prefix,
             str(uuid.uuid4())[:6],
             datetime.now().strftime(k.DATE_FORMAT),

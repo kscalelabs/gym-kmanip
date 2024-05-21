@@ -25,10 +25,11 @@ def meta(g: h5py.Group, **kwargs) -> None:
 
 
 def cam(g: h5py.Group, cam: k.Cam) -> None:
-    g.create_group(f"world/camera/{cam.name}")
-    g[cam.name].attrs["resolution"] = [cam.w, cam.h]
-    g[cam.name].attrs["focal_length"] = cam.fl
-    g[cam.name].attrs["principal_point"] = cam.pp
+    group_name: str = f"world/camera/{cam.name}"
+    g.create_group(group_name)
+    g[group_name].attrs["resolution"] = [cam.w, cam.h]
+    g[group_name].attrs["focal_length"] = cam.fl
+    g[group_name].attrs["principal_point"] = cam.pp
 
 
 def step(
@@ -37,4 +38,21 @@ def step(
     observation: Dict[str, NDArray],
     info: Dict[str, Any],
 ) -> None:
-    pass
+    step_group = g.create_group(f"step/{info['step']}")
+    step_group.attrs["episode"] = info["episode"]
+    step_group.attrs["sim_time"] = info["sim_time"]
+    step_group.attrs["cpu_time"] = info["cpu_time"]
+    step_group.attrs["reward"] = info["reward"]
+    step_group.attrs["is_success"] = info["is_success"]
+    action_group = step_group.create_group("action")
+    for key, value in action.items():
+        action_group.create_dataset(key, data=value)
+    observation_group = step_group.create_group("observation")
+    for key, value in observation.items():
+        observation_group.create_dataset(key, data=value)
+    info_group = step_group.create_group("info")
+    for key, value in info.items():
+        if isinstance(value, (int, float, str)):
+            info_group.attrs[key] = value
+        else:
+            info_group.create_dataset(key, data=value)
