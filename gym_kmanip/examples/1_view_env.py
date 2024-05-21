@@ -12,6 +12,7 @@ ENV_NAME: str = "KManipSoloArm"
 # ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
 env = gym.make(ENV_NAME)
+env.reset()
 action_spec = env.unwrapped.mj_env.action_spec()
 
 

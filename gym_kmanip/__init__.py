@@ -204,6 +204,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
+            "cube_pos", # cube position
+            "cube_orn", # cube orientation
         ],
         "act_list": [
             "eer_pos",  # right end effector position
@@ -228,8 +230,9 @@ register(
         "urdf_filename": SOLO_ARM_URDF,
         "obs_list": [
             "q_pos",  # joint positions
-            "q_ik",  # joint positions from IK
             "q_vel",  # joint velocities
+            "cube_pos", # cube position
+            "cube_orn", # cube orientation
         ],
         "act_list": [
             "q_pos",  # joint positions
@@ -282,6 +285,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
+            "cube_pos", # cube position
+            "cube_orn", # cube orientation
         ],
         "act_list": [
             "eel_pos",  # left end effector position
@@ -345,6 +350,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
+            "cube_pos", # cube position
+            "cube_orn", # cube orientation
         ],
         "act_list": [
             "eel_pos",  # left end effector position

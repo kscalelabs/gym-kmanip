@@ -17,7 +17,7 @@ import rerun as rr
 
 import gym_kmanip as k
 from gym_kmanip.ik_mujoco import ik
-from gym_kmanip.rr_blueprint import make_blueprint
+from gym_kmanip.log_rerun import make_blueprint
 
 
 # Task contains the mujoco logic, based on dm_control suite
@@ -96,9 +96,15 @@ class KManipTask(base.Task):
         obs = OrderedDict()
         if "q_pos" in self.gym_env.obs_list:
             obs["q_pos"] = physics.data.qpos.copy()
+            obs["q_pos"] = obs["q_pos"][:self.gym_env.q_len]
         if "q_vel" in self.gym_env.obs_list:
             obs["q_vel"] = physics.data.qvel.copy()
-
+            obs["q_vel"] = obs["q_vel"][:self.gym_env.q_len]
+        if "cube_pos" in self.gym_env.obs_list:
+            obs["cube_pos"] = physics.data.qpos[-7:-4].copy()
+            # TODO: normalize to spawn range
+        if "cube_orn" in self.gym_env.obs_list:
+            obs["cube_orn"] = physics.data.qpos[-4:].copy()
         for obs_name in self.gym_env.obs_list:
             if "camera" in obs_name:
                 cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
@@ -153,6 +159,8 @@ class KManipEnv(gym.Env):
         obs_list: List[str] = [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
+            "cube_pos", # cube position
+            "cube_orn", # cube orientation
             "camera/top",  # overhead camera
             "camera/head",  # robot head camera
             "camera/grip_l",  # left gripper camera
@@ -238,6 +246,14 @@ class KManipEnv(gym.Env):
                 high=np.array([k.MAX_Q_VEL] * self.q_len),
                 dtype=np.float64,
             )
+        if "cube_pos" in obs_list:
+            _obs_dict["cube_pos"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=np.float64
+            )
+        if "cube_orn" in obs_list:
+            _obs_dict["cube_orn"] = spaces.Box(
+                low=-1, high=1, shape=(4,), dtype=np.float64
+            )
         for obs_name in obs_list:
             if "camera" in obs_name:
                 cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
@@ -295,13 +311,7 @@ class KManipEnv(gym.Env):
         super().reset(seed=seed)
         ts: TimeStep = self.mj_env.reset()
         self.episode_step = 0
-        ts.observation["q_pos"] = ts.observation["q_pos"][: self.q_len]
-        ts.observation["q_vel"] = ts.observation["q_vel"][: self.q_len]
-        info = {
-            "cube_pos": ts.observation["q_pos"][-7:-4],
-            "cube_orn": ts.observation["q_pos"][-4:],
-            "is_success": False,
-        }
+        info = {"is_success": False}
         return ts.observation, info
 
     def step(self, action):
