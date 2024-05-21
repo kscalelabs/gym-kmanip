@@ -41,7 +41,7 @@ class KManipTask(base.Task):
 
     def before_step(self, action, physics):
         q_pos: NDArray = physics.data.qpos[:].copy()
-        ctrl: NDArray = physics.data.ctrl.copy().astype(np.float32)
+        ctrl: NDArray = physics.data.ctrl.copy().astype(k.ACT_DTYPE)
         if "eer_pos" in action:
             np.copyto(physics.data.mocap_pos[k.MOCAP_ID_R], action["eer_pos"])
         if "eer_orn" in action:
@@ -232,7 +232,7 @@ class KManipEnv(gym.Env):
                 "step": step,
                 "end": end,
             }
-            self.h5py_grp: h5py.Group = None
+            self.hypy_f: h5py.File = None
         if log_rerun:
             from gym_kmanip.log_rerun import new, cam, step, end
 
@@ -260,21 +260,21 @@ class KManipEnv(gym.Env):
             _obs_dict["q_pos"] = spaces.Box(
                 low=np.array([-2 * np.pi] * self.q_len),
                 high=np.array([2 * np.pi] * self.q_len),
-                dtype=np.float64,
+                dtype=k.OBS_DTYPE,
             )
         if "q_vel" in obs_list:
             _obs_dict["q_vel"] = spaces.Box(
                 low=np.array([-k.MAX_Q_VEL] * self.q_len),
                 high=np.array([k.MAX_Q_VEL] * self.q_len),
-                dtype=np.float64,
+                dtype=k.OBS_DTYPE,
             )
         if "cube_pos" in obs_list:
             _obs_dict["cube_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=np.float64
+                low=-1, high=1, shape=(3,), dtype=k.OBS_DTYPE
             )
         if "cube_orn" in obs_list:
             _obs_dict["cube_orn"] = spaces.Box(
-                low=-1, high=1, shape=(4,), dtype=np.float64
+                low=-1, high=1, shape=(4,), dtype=k.OBS_DTYPE
             )
         for cam in self.cameras:
             _obs_dict[cam.log_name] = spaces.Box(
@@ -289,38 +289,42 @@ class KManipEnv(gym.Env):
         _action_dict: OrderedDict[str, spaces.Space] = OrderedDict()
         if "eel_pos" in act_list:
             _action_dict["eel_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=np.float32
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
             )
         if "eel_orn" in act_list:
             _action_dict["eel_orn"] = spaces.Box(
-                low=-1, high=1, shape=(4,), dtype=np.float32
+                low=-1, high=1, shape=(4,), dtype=k.ACT_DTYPE
             )
         if "eer_pos" in act_list:
             _action_dict["eer_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=np.float32
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
             )
         if "eer_orn" in act_list:
             _action_dict["eer_orn"] = spaces.Box(
-                low=-1, high=1, shape=(4,), dtype=np.float32
+                low=-1, high=1, shape=(4,), dtype=k.ACT_DTYPE
             )
         if "grip_l" in act_list:
             _action_dict["grip_l"] = spaces.Box(
-                low=-1, high=1, shape=(1,), dtype=np.float32
+                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
             )
         if "grip_r" in act_list:
             _action_dict["grip_r"] = spaces.Box(
-                low=-1, high=1, shape=(1,), dtype=np.float32
+                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
             )
         self.action_space = spaces.Dict(_action_dict)
+        self.action_len: int = len(self.action_space.spaces)
         # information space
         self.info: Dict[str, Any] = {
             "step": self.step_idx,
             "episode": self.episode_idx,
             "is_success": False,
             "q_keys": self.q_keys,
+            "q_len": self.q_len,
+            "a_len": self.action_len,
             "obs_list": self.obs_list,
             "act_list": self.act_list,
             "cameras": self.cameras,
+            "sim": True,
         }
 
     def render(self):
@@ -337,9 +341,9 @@ class KManipEnv(gym.Env):
         self.info["episode"] = self.episode_idx
         self.info["is_success"] = False
         if self.log_h5py:
-            self.h5py_grp = self.log_h5py_funcs["new"](self.log_dir, self.info)
+            self.hypy_f = self.log_h5py_funcs["new"](self.log_dir, self.info)
             for cam in self.cameras:
-                self.log_h5py_funcs["cam"](self.h5py_grp, cam)
+                self.log_h5py_funcs["cam"](self.hypy_f, cam)
         if self.log_rerun:
             self.log_rerun_funcs["new"](self.log_dir, self.info)
             for cam in self.cameras:
@@ -364,14 +368,14 @@ class KManipEnv(gym.Env):
         if self.log_h5py:
             start_time = time.time()
             self.log_h5py_funcs["step"](
-                self.h5py_grp, action, ts.observation, self.info
+                self.hypy_f, action, ts.observation, self.info
             )
             print(f"logging w/ h5py took {(time.time() - start_time) * 1000:.2f}ms")
         return ts.observation, ts.reward, terminated, False, self.info
 
     def close(self):
         if self.log_h5py:
-            self.log_h5py_funcs["end"](self.h5py_grp)
+            self.log_h5py_funcs["end"](self.hypy_f)
         if self.log_rerun:
             self.log_rerun_funcs["end"]()
         super().close()

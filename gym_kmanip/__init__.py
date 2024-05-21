@@ -24,10 +24,16 @@ SOLO_ARM_URDF: str = "stompy_tiny_solo_arm_glb.urdf"
 DUAL_ARM_URDF: str = "stompy_dual_arm_tiny_glb.urdf"
 TORSO_URDF: str = "stompy_tiny_glb/robot.urdf"
 
+# Misc
 FPS: int = 30
 MAX_EPISODE_STEPS: int = 64
 CONTROL_TIMESTEP: float = 0.02  # ms
 MAX_Q_VEL: float = np.pi  # rad/s
+H5PY_CHUNK_SIZE_BYTES: int = 1024**2 * 2
+
+# Gym spaces dtypes
+OBS_DTYPE: np.dtype = np.float64
+ACT_DTYPE: np.dtype = np.float32
 
 Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
 Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
@@ -42,7 +48,7 @@ Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_3"] = 0.005
 Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_hand_right_1_slider_1"] = 0.005
 Q_SOLO_ARM_HOME: NDArray = np.array(
     [v for v in Q_SOLO_ARM_HOME_DICT.values()],
-    dtype=np.float32,
+    dtype=ACT_DTYPE,
 )
 Q_SOLO_ARM_KEYS: List[str] = list(Q_SOLO_ARM_HOME_DICT.keys())
 
@@ -69,7 +75,7 @@ Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_slider_3"] = 0.005
 Q_DUAL_ARM_HOME_DICT["joint_left_arm_1_hand_left_1_slider_1"] = 0.005
 Q_DUAL_ARM_HOME: NDArray = np.array(
     [v for v in Q_DUAL_ARM_HOME_DICT.values()],
-    dtype=np.float32,
+    dtype=ACT_DTYPE,
 )
 Q_DUAL_ARM_KEYS: List[str] = list(Q_DUAL_ARM_HOME_DICT.keys())
 
@@ -96,7 +102,7 @@ Q_TORSO_HOME_DICT["joint_left_arm_2_hand_1_slider_2"] = 0.0
 Q_TORSO_HOME_DICT["joint_left_arm_2_hand_1_x4_2_dof_x4"] = 0.0
 Q_TORSO_HOME: NDArray = np.array(
     [v for v in Q_TORSO_HOME_DICT.values()],
-    dtype=np.float32,
+    dtype=ACT_DTYPE,
 )
 Q_TORSO_KEYS: List[str] = list(Q_TORSO_HOME_DICT.keys())
 
@@ -130,6 +136,7 @@ IK_MAX_VEL: float = 2.0
 class Cam:
     w: int  # image width
     h: int  # image height
+    c: int  # image channels
     fl: int  # focal length
     pp: Tuple[int]  # principal point
     name: str  # name
@@ -140,10 +147,10 @@ class Cam:
 
 
 CAMERAS: OrderedDict[str, Cam] = OrderedDict()
-CAMERAS["head"] = Cam(640, 480, 448, (320, 240), "head", "camera/head")
-CAMERAS["top"] = Cam(640, 480, 448, (320, 240), "top", "camera/top")
-CAMERAS["grip_r"] = Cam(60, 40, 45, (30, 20), "grip_r", "camera/grip_r")
-CAMERAS["grip_l"] = Cam(60, 40, 45, (30, 20), "grip_l", "camera/grip_l")
+CAMERAS["head"] = Cam(640, 480, 3, 448, (320, 240), "head", "camera/head")
+CAMERAS["top"] = Cam(640, 480, 3, 448, (320, 240), "top", "camera/top")
+CAMERAS["grip_r"] = Cam(60, 40, 3, 45, (30, 20), "grip_r", "camera/grip_r")
+CAMERAS["grip_l"] = Cam(60, 40, 3, 45, (30, 20), "grip_l", "camera/grip_l")
 
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE_X: Tuple[float] = [0.1, 0.3]
