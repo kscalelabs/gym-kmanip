@@ -2,7 +2,7 @@ from collections import OrderedDict
 from datetime import datetime
 import os
 import time
-from typing import Callable, Dict, List
+from typing import Any, Callable, Dict, List
 import uuid
 
 from dm_control import mujoco
@@ -316,6 +316,15 @@ class KManipEnv(gym.Env):
                 low=-1, high=1, shape=(1,), dtype=np.float32
             )
         self.action_space = spaces.Dict(_action_dict)
+        # information space
+        self.info: Dict[str, Any] = {
+            "step": self.step_idx,
+            "episode": self.episode_idx,
+            "is_success": False,
+            "q_keys": self.q_keys,
+            "obs_list": self.obs_list,
+            "act_list": self.act_list,
+        }
 
     def render(self):
         # TODO: when is render actually used?
@@ -323,7 +332,7 @@ class KManipEnv(gym.Env):
         return self.mj_env.physics.render(cam.h, cam.w, camera_id=cam.name)
 
     def reset_log_filename(self) -> str:
-        self.log_filename = '.'.join(
+        self.log_filename = ".".join(
             self.log_prefix,
             str(uuid.uuid4())[:6],
             datetime.now().strftime(k.DATE_FORMAT),
@@ -334,46 +343,45 @@ class KManipEnv(gym.Env):
         ts: TimeStep = self.mj_env.reset()
         self.step_idx = 0
         self.episode_idx += 1
-        info = {
-            "step": self.step_idx,
-            "episode": self.episode_idx,
-            "is_success": False,
-        }
+        self.info["step"] = (self.step_idx,)
+        self.info["episode"] = (self.episode_idx,)
+        self.info["is_success"] = False
         if self.log_h5py or self.log_rerun:
             self.reset_log_filename()
         if self.log_h5py:
             self.h5py_grp = self.log_h5py_funcs["make_log"](
                 self.log_filename, k.DATA_DIR
             )
-            self.log_h5py_funcs["log_metadata"](self.h5py_grp, **info)
+            self.log_h5py_funcs["log_metadata"](self.h5py_grp, **self.info)
         if self.log_rerun:
             self.log_rerun_funcs["make_log"](
                 self.log_filename, k.DATA_DIR, self.obs_list, self.act_list
             )
-            self.log_rerun_funcs["log_metadata"](**info)
-        return ts.observation, info
+            self.log_rerun_funcs["log_metadata"](**self.info)
+        return ts.observation, self.info
 
     def step(self, action):
         ts: TimeStep = self.mj_env.step(action)
         self.step_idx += 1
+        self.info["step"] = self.step_idx
+        self.info["episode"] = self.episode_idx
+        self.info["sim_time"] = self.mj_env.physics.data.time
+        self.info["cpu_time"] = time.time()
+        self.info["reward"] = ts.reward
+        self.info["is_success"] = ts.reward > k.REWARD_SUCCESS_THRESHOLD
         terminated: bool = ts.step_type == StepType.LAST
-        info = {
-            "step": self.step_idx,
-            "episode": self.episode_idx,
-            "sim_time": self.mj_env.physics.data.time,
-            "cpu_time": time.time(),
-            "reward": ts.reward,
-            "is_success": ts.reward > k.REWARD_SUCCESS_THRESHOLD,
-        }
+        self.info["terminated"] = terminated
         if self.log_rerun:
             start_time = time.time()
-            self.log_rerun_funcs["log_step"](action, ts.observation, info)
+            self.log_rerun_funcs["log_step"](action, ts.observation, self.info)
             print(f"logging w/ rerun took {(time.time() - start_time) * 1000:.2f}ms")
         if self.log_h5py:
             start_time = time.time()
-            self.log_h5py_funcs["log_step"](self.h5py_grp, action, ts.observation, info)
+            self.log_h5py_funcs["log_step"](
+                self.h5py_grp, action, ts.observation, self.info
+            )
             print(f"logging w/ h5py took {(time.time() - start_time) * 1000:.2f}ms")
-        return ts.observation, ts.reward, terminated, False, info
+        return ts.observation, ts.reward, terminated, False, self.info
 
     def close(self):
         # TODO: close out log files

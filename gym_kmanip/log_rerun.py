@@ -36,6 +36,7 @@ def log_cam(cam: k.Cam) -> None:
         ),
     )
 
+
 def log_step(
     action: Dict[str, NDArray],
     observation: Dict[str, NDArray],
@@ -64,7 +65,7 @@ def log_step(
         rr.log("action/grip_r", rr.Scalar(action["grip_r"]))
     if "grip_l" in action:
         rr.log("action/grip_l", rr.Scalar(action["grip_l"]))
-    for i, key in enumerate(self.q_keys):
+    for i, key in enumerate(info["q_keys"]):
         rr.log(f"state/q_pos/{key}", rr.Scalar(observation["q_pos"][i]))
         rr.log(f"state/q_vel/{key}", rr.Scalar(observation["q_vel"][i]))
     rr.log(
@@ -74,21 +75,23 @@ def log_step(
             rotation=rr.Quaternion(xyzw=info["cube_orn"][k.WXYZ_2_XYZW]),
         ),
     )
-    for obs_name in self.obs_list:
+    for obs_name in info["obs_list"]:
         if "camera" in obs_name:
             cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
             rr.log(f"camera/{cam.name}", rr.Image(observation[obs_name]))
-            _quat: NDArray = np.empty(4)
-            mujoco.mju_mat2Quat(
-                _quat, self.mj_env.physics.data.camera(cam.name).xmat
-            )
-            rr.log(
-                f"world/{cam.name}",
-                rr.Transform3D(
-                    translation=self.mj_env.physics.data.camera(cam.name).xpos,
-                    rotation=rr.Quaternion(xyzw=_quat[k.WXYZ_2_XYZW]),
-                ),
-            )
+            # TODO: camera position and orientation
+            # _quat: NDArray = np.empty(4)
+            # mujoco.mju_mat2Quat(
+            #     _quat, self.mj_env.physics.data.camera(cam.name).xmat
+            # )
+            # rr.log(
+            #     f"world/{cam.name}",
+            #     rr.Transform3D(
+            #         translation=self.mj_env.physics.data.camera(cam.name).xpos,
+            #         rotation=rr.Quaternion(xyzw=_quat[k.WXYZ_2_XYZW]),
+            #     ),
+            # )
+
 
 def make_blueprint(
     obs_list: List[str],
