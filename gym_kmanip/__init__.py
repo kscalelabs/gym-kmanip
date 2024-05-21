@@ -29,7 +29,12 @@ FPS: int = 30
 MAX_EPISODE_STEPS: int = 64
 CONTROL_TIMESTEP: float = 0.02  # ms
 MAX_Q_VEL: float = np.pi  # rad/s
+
+# Datasets are stored in HDF5 format on HuggingFace's LeRobot
 H5PY_CHUNK_SIZE_BYTES: int = 1024**2 * 2
+HF_LEROBOT_VERSION: str = "v1.4"
+HF_LEROBOT_BATCH_SIZE: int = 32
+HF_LEROBOT_NUM_WORKERS: int = 8
 
 # Gym spaces dtypes
 OBS_DTYPE: np.dtype = np.float64
