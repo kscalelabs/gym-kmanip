@@ -103,14 +103,12 @@ class KManipTask(base.Task):
             # TODO: normalize to spawn range
         if "cube_orn" in self.gym_env.obs_list:
             obs["cube_orn"] = physics.data.qpos[-4:].copy()
-        for obs_name in self.gym_env.obs_list:
-            if "camera" in obs_name:
-                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
-                obs[obs_name] = physics.render(
-                    height=cam.h,
-                    width=cam.w,
-                    camera_id=cam.name,
-                ).copy()
+        for cam in self.gym_env.cameras:
+            obs[cam.log_name] = physics.render(
+                height=cam.h,
+                width=cam.w,
+                camera_id=cam.name,
+            ).copy()
         return obs
 
     def get_reward(self, physics) -> float:
@@ -207,6 +205,12 @@ class KManipEnv(gym.Env):
         # control ids for the grippers
         self.ctrl_id_r_grip: NDArray = ctrl_id_r_grip
         self.ctrl_id_l_grip: NDArray = ctrl_id_l_grip
+        # camera properties
+        self.cameras: List[k.Cam] = []
+        for obs_name in obs_list:
+            if "camera" in obs_name:
+                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
+                self.cameras.append(cam)
         # optionally log using rerun (viz/debug) or h5py (data)
         self.log_rerun: bool = log_rerun
         self.log_h5py: bool = log_h5py
@@ -216,27 +220,24 @@ class KManipEnv(gym.Env):
         if log_h5py or log_rerun:
             self.reset_log_filename()
         if log_h5py:
-            from gym_kmanip.log_h5py import new, cam, meta, step, end
+            from gym_kmanip.log_h5py import new, cam, step, end, h5py
 
             self.log_h5py_funcs: Dict[str, Callable] = {
                 "new": new,
                 "cam": cam,
-                "meta": meta,
                 "step": step,
                 "end": end,
             }
-            self.h5py_grp = new(self.log_filename, k.DATA_DIR)
+            self.h5py_grp: h5py.Group = None
         if log_rerun:
-            from gym_kmanip.log_rerun import new, cam, meta, step, end
+            from gym_kmanip.log_rerun import new, cam, step, end
 
             self.log_rerun_funcs: Dict[str, Callable] = {
                 "new": new,
                 "cam": cam,
-                "meta": meta,
                 "step": step,
                 "end": end,
             }
-            new(self.log_filename,k.DATA_DIR,obs_list,act_list)
         # robot descriptions
         self.mjcf_filename: str = mjcf_filename
         self.urdf_filename: str = urdf_filename
@@ -271,19 +272,13 @@ class KManipEnv(gym.Env):
             _obs_dict["cube_orn"] = spaces.Box(
                 low=-1, high=1, shape=(4,), dtype=np.float64
             )
-        for obs_name in obs_list:
-            if "camera" in obs_name:
-                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
-                _obs_dict[obs_name] = spaces.Box(
-                    low=cam.low,
-                    high=cam.high,
-                    shape=(cam.h, cam.w, 3),
-                    dtype=cam.dtype,
-                )
-                if self.log_rerun:
-                    self.log_rerun_funcs["cam"](cam)
-                if self.log_h5py:
-                    self.log_h5py_funcs["cam"](self.h5py_grp, cam)
+        for cam in self.cameras:
+            _obs_dict[cam.log_name] = spaces.Box(
+                low=cam.low,
+                high=cam.high,
+                shape=(cam.h, cam.w, 3),
+                dtype=cam.dtype,
+            )
         self.observation_space = spaces.Dict(_obs_dict)
         # action space
         self.act_list = act_list
@@ -321,6 +316,7 @@ class KManipEnv(gym.Env):
             "q_keys": self.q_keys,
             "obs_list": self.obs_list,
             "act_list": self.act_list,
+            "cameras": self.cameras,
         }
 
     def render(self):
@@ -346,13 +342,13 @@ class KManipEnv(gym.Env):
         if self.log_h5py or self.log_rerun:
             self.reset_log_filename()
         if self.log_h5py:
-            self.h5py_grp = self.log_h5py_funcs["new"](self.log_filename, k.DATA_DIR)
-            self.log_h5py_funcs["meta"](self.h5py_grp, **self.info)
+            self.h5py_grp = self.log_h5py_funcs["new"](self.log_filename, k.DATA_DIR, self.info)
+            for cam in self.cameras:
+                self.log_h5py_funcs["cam"](self.h5py_grp, cam)
         if self.log_rerun:
-            self.log_rerun_funcs["new"](
-                self.log_filename, k.DATA_DIR, self.obs_list, self.act_list
-            )
-            self.log_rerun_funcs["meta"](**self.info)
+            self.log_rerun_funcs["new"](self.log_filename, k.DATA_DIR, self.info)
+            for cam in self.cameras:
+                self.log_rerun_funcs["cam"](cam)
         return ts.observation, self.info
 
     def step(self, action):
@@ -383,3 +379,4 @@ class KManipEnv(gym.Env):
             self.log_h5py_funcs["end"](self.h5py_grp)
         if self.log_rerun:
             self.log_rerun_funcs["end"]()
+        super().close()

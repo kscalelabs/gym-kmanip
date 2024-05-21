@@ -25,7 +25,7 @@ def meta(g: h5py.Group, **kwargs) -> None:
 
 
 def cam(g: h5py.Group, cam: k.Cam) -> None:
-    group_name: str = f"world/camera/{cam.name}"
+    group_name: str = cam.log_name
     g.create_group(group_name)
     g[group_name].attrs["resolution"] = [cam.w, cam.h]
     g[group_name].attrs["focal_length"] = cam.fl

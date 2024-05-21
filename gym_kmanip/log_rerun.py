@@ -11,10 +11,39 @@ import gym_kmanip as k
 def new(
     log_filename: str,
     data_dir_path: str,
-    obs_list: List[str],
-    act_list: List[str],
+    info: Dict[str, Any],
 ):
-    blueprint = make_blueprint(obs_list, act_list)
+    # Blueprint is the GUI layout for ReRun
+    time_series_views: List[rrb.SpaceView] = []
+    if "q_pos" in info["obs_list"]:
+        time_series_views.append(
+            rrb.TimeSeriesView(origin="/state/q_pos", name="q_pos"),
+        )
+    if "q_vel" in info["obs_list"]:
+        time_series_views.append(
+            rrb.TimeSeriesView(origin="/state/q_vel", name="q_vel"),
+        )
+    if len(info["act_list"]) > 0:
+        time_series_views.append(
+            rrb.TimeSeriesView(origin="/action", name="action"),
+        )
+    camera_views: List[rrb.SpaceView] = []
+    for cam in info["cameras"]:
+        camera_views.append(
+            rrb.Spatial2DView(origin=cam.log_name, name=cam.name)
+        )
+    blueprint = rrb.Blueprint(
+        rrb.Horizontal(
+            rrb.Vertical(
+                rrb.Spatial3DView(
+                    origin="/world",
+                    name="scene",
+                ),
+                rrb.Horizontal(*camera_views),
+            ),
+            rrb.Vertical(*time_series_views),
+        ),
+    )
     rr.init("gym_kmanip", default_blueprint=blueprint)
     log_path = os.path.join(data_dir_path, f"{log_filename}.rrd")
     rr.save(log_path, default_blueprint=blueprint)
@@ -23,11 +52,6 @@ def new(
 
 def end():
     rr.disconnect()
-
-
-def meta(**kwargs) -> None:
-    for key, value in kwargs.items():
-        rr.log(key, value)
 
 
 def cam(cam: k.Cam) -> None:
@@ -46,9 +70,10 @@ def step(
     observation: Dict[str, NDArray],
     info: Dict[str, Any],
 ) -> None:
-    rr.set_time_seconds("timestep", info["sim_time"])
-    rr.set_time_sequence("step", info["step"])
+    rr.set_time_seconds("sim_time", info["sim_time"])
+    rr.set_time_seconds("cpu_time", info["cpu_time"])
     rr.set_time_sequence("episode", info["episode"])
+    rr.set_time_sequence("step", info["step"])
     if "eer_pos" in action:
         rr.log(
             "world/eer",
@@ -72,71 +97,25 @@ def step(
     for i, key in enumerate(info["q_keys"]):
         rr.log(f"state/q_pos/{key}", rr.Scalar(observation["q_pos"][i]))
         rr.log(f"state/q_vel/{key}", rr.Scalar(observation["q_vel"][i]))
-    rr.log(
-        "world/cube",
-        rr.Transform3D(
-            translation=observation["cube_pos"],
-            rotation=rr.Quaternion(xyzw=observation["cube_orn"][k.WXYZ_2_XYZW]),
-        ),
-    )
-    for obs_name in info["obs_list"]:
-        if "camera" in obs_name:
-            cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
-            rr.log(f"camera/{cam.name}", rr.Image(observation[obs_name]))
-            # TODO: camera position and orientation
-            # _quat: NDArray = np.empty(4)
-            # mujoco.mju_mat2Quat(
-            #     _quat, self.mj_env.physics.data.camera(cam.name).xmat
-            # )
-            # rr.log(
-            #     f"world/{cam.name}",
-            #     rr.Transform3D(
-            #         translation=self.mj_env.physics.data.camera(cam.name).xpos,
-            #         rotation=rr.Quaternion(xyzw=_quat[k.WXYZ_2_XYZW]),
-            #     ),
-            # )
-
-
-def make_blueprint(
-    obs_list: List[str],
-    act_list: List[str],
-) -> rrb.Blueprint:
-    """Blueprint is the GUI layout for ReRun."""
-    time_series_views: List[rrb.SpaceView] = []
-    if "q_pos" in obs_list:
-        time_series_views.append(
-            rrb.TimeSeriesView(origin="/state/q_pos", name="q_pos"),
-        )
-    if "q_vel" in obs_list:
-        time_series_views.append(
-            rrb.TimeSeriesView(origin="/state/q_vel", name="q_vel"),
-        )
-    if "grip_r" in obs_list:
-        time_series_views.append(
-            rrb.TimeSeriesView(origin="/action", name="grip_r"),
-        )
-    if "grip_l" in obs_list:
-        time_series_views.append(
-            rrb.TimeSeriesView(origin="/action", name="grip_l"),
-        )
-    camera_views: List[rrb.SpaceView] = []
-    for obs_name in obs_list:
-        if "camera" in obs_name:
-            cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
-            camera_views.append(
-                rrb.Spatial2DView(origin=f"/camera/{cam.name}", name=cam.name),
-            )
-    blueprint = rrb.Blueprint(
-        rrb.Horizontal(
-            rrb.Vertical(
-                rrb.Spatial3DView(
-                    origin="/world",
-                    name="scene",
-                ),
-                rrb.Horizontal(*camera_views),
+    if "cube_pos" in observation and "cube_orn" in observation:
+        rr.log(
+            "world/cube",
+            rr.Transform3D(
+                translation=observation["cube_pos"],
+                rotation=rr.Quaternion(xyzw=observation["cube_orn"][k.WXYZ_2_XYZW]),
             ),
-            rrb.Vertical(*time_series_views),
-        ),
-        collapse_panels=True,
-    )
-    return blueprint
+        )
+    for cam in info["cameras"]:
+        rr.log(cam.log_name, rr.Image(observation[cam.log_name]))
+        # TODO: camera position and orientation
+        # _quat: NDArray = np.empty(4)
+        # mujoco.mju_mat2Quat(
+        #     _quat, self.mj_env.physics.data.camera(cam.name).xmat
+        # )
+        # rr.log(
+        #     f"world/{cam.name}",
+        #     rr.Transform3D(
+        #         translation=self.mj_env.physics.data.camera(cam.name).xpos,
+        #         rotation=rr.Quaternion(xyzw=_quat[k.WXYZ_2_XYZW]),
+        #     ),
+        # )

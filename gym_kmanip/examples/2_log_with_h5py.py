@@ -24,7 +24,7 @@ for _ in range(k.MAX_EPISODE_STEPS):
         action["eel_orn"] = np.array([1, 0, 0, 0])
     observation, reward, terminated, truncated, info = env.step(action)
     if terminated or truncated:
-        observation, info = env.reset()
+        break
 
 env.close()
 

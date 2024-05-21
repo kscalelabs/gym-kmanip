@@ -133,16 +133,17 @@ class Cam:
     fl: int  # focal length
     pp: Tuple[int]  # principal point
     name: str  # name
+    log_name: str  # name used for hierarchical logging
     low: int = 0
     high: int = 255
     dtype = np.uint8
 
 
 CAMERAS: OrderedDict[str, Cam] = OrderedDict()
-CAMERAS["head"] = Cam(640, 480, 448, (320, 240), "head")
-CAMERAS["top"] = Cam(640, 480, 448, (320, 240), "top")
-CAMERAS["grip_r"] = Cam(60, 40, 45, (30, 20), "grip_r")
-CAMERAS["grip_l"] = Cam(60, 40, 45, (30, 20), "grip_l")
+CAMERAS["head"] = Cam(640, 480, 448, (320, 240), "head", "camera/head")
+CAMERAS["top"] = Cam(640, 480, 448, (320, 240), "top", "camera/top")
+CAMERAS["grip_r"] = Cam(60, 40, 45, (30, 20), "grip_r", "camera/grip_r")
+CAMERAS["grip_l"] = Cam(60, 40, 45, (30, 20), "grip_l", "camera/grip_l")
 
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE_X: Tuple[float] = [0.1, 0.3]
@@ -204,8 +205,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cube_pos", # cube position
-            "cube_orn", # cube orientation
+            "cube_pos",  # cube position
+            "cube_orn",  # cube orientation
         ],
         "act_list": [
             "eer_pos",  # right end effector position
@@ -231,8 +232,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cube_pos", # cube position
-            "cube_orn", # cube orientation
+            "cube_pos",  # cube position
+            "cube_orn",  # cube orientation
         ],
         "act_list": [
             "q_pos",  # joint positions
@@ -285,8 +286,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cube_pos", # cube position
-            "cube_orn", # cube orientation
+            "cube_pos",  # cube position
+            "cube_orn",  # cube orientation
         ],
         "act_list": [
             "eel_pos",  # left end effector position
@@ -350,8 +351,8 @@ register(
         "obs_list": [
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
-            "cube_pos", # cube position
-            "cube_orn", # cube orientation
+            "cube_pos",  # cube position
+            "cube_orn",  # cube orientation
         ],
         "act_list": [
             "eel_pos",  # left end effector position
