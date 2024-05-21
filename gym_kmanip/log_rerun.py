@@ -8,7 +8,7 @@ import rerun.blueprint as rrb
 import gym_kmanip as k
 
 
-def make_log(
+def new(
     log_filename: str,
     data_dir_path: str,
     obs_list: List[str],
@@ -21,14 +21,18 @@ def make_log(
     rr.send_blueprint(blueprint=blueprint)
 
 
-def log_metadata(**kwargs) -> None:
+def end():
+    rr.disconnect()
+
+
+def meta(**kwargs) -> None:
     for key, value in kwargs.items():
         rr.log(key, value)
 
 
-def log_cam(cam: k.Cam) -> None:
+def cam(cam: k.Cam) -> None:
     rr.log(
-        f"world/{cam.name}",
+        f"world/camera/{cam.name}",
         rr.Pinhole(
             resolution=[cam.w, cam.h],
             focal_length=cam.fl,
@@ -37,7 +41,7 @@ def log_cam(cam: k.Cam) -> None:
     )
 
 
-def log_step(
+def step(
     action: Dict[str, NDArray],
     observation: Dict[str, NDArray],
     info: Dict[str, Any],

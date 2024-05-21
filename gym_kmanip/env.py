@@ -216,25 +216,27 @@ class KManipEnv(gym.Env):
         if log_h5py or log_rerun:
             self.reset_log_filename()
         if log_h5py:
-            from gym_kmanip.log_h5py import make_log, log_cam, log_metadata, log_step
+            from gym_kmanip.log_h5py import new, cam, meta, step, end
 
             self.log_h5py_funcs: Dict[str, Callable] = {
-                "make_log": make_log,
-                "log_cam": log_cam,
-                "log_metadata": log_metadata,
-                "log_step": log_step,
+                "new": new,
+                "cam": cam,
+                "meta": meta,
+                "step": step,
+                "end": end,
             }
-            self.h5py_grp = make_log(self.log_filename)
+            self.h5py_grp = new(self.log_filename)
         if log_rerun:
-            from gym_kmanip.log_rerun import make_log, log_cam, log_metadata, log_step
+            from gym_kmanip.log_rerun import new, cam, meta, step, end
 
             self.log_rerun_funcs: Dict[str, Callable] = {
-                "make_log": make_log,
-                "log_cam": log_cam,
-                "log_metadata": log_metadata,
-                "log_step": log_step,
+                "new": new,
+                "cam": cam,
+                "meta": meta,
+                "step": step,
+                "end": end,
             }
-            make_log(
+            new(
                 log_filename=self.log_filename,
                 data_dir_path=k.DATA_DIR,
                 obs_list=obs_list,
@@ -284,9 +286,9 @@ class KManipEnv(gym.Env):
                     dtype=cam.dtype,
                 )
                 if self.log_rerun:
-                    self.log_rerun_funcs["log_cam"](cam)
+                    self.log_rerun_funcs["cam"](cam)
                 if self.log_h5py:
-                    self.log_h5py_funcs["log_cam"](self.h5py_grp, cam)
+                    self.log_h5py_funcs["cam"](self.h5py_grp, cam)
         self.observation_space = spaces.Dict(_obs_dict)
         # action space
         self.act_list = act_list
@@ -349,15 +351,13 @@ class KManipEnv(gym.Env):
         if self.log_h5py or self.log_rerun:
             self.reset_log_filename()
         if self.log_h5py:
-            self.h5py_grp = self.log_h5py_funcs["make_log"](
-                self.log_filename, k.DATA_DIR
-            )
-            self.log_h5py_funcs["log_metadata"](self.h5py_grp, **self.info)
+            self.h5py_grp = self.log_h5py_funcs["new"](self.log_filename, k.DATA_DIR)
+            self.log_h5py_funcs["meta"](self.h5py_grp, **self.info)
         if self.log_rerun:
-            self.log_rerun_funcs["make_log"](
+            self.log_rerun_funcs["new"](
                 self.log_filename, k.DATA_DIR, self.obs_list, self.act_list
             )
-            self.log_rerun_funcs["log_metadata"](**self.info)
+            self.log_rerun_funcs["meta"](**self.info)
         return ts.observation, self.info
 
     def step(self, action):
@@ -373,16 +373,18 @@ class KManipEnv(gym.Env):
         self.info["terminated"] = terminated
         if self.log_rerun:
             start_time = time.time()
-            self.log_rerun_funcs["log_step"](action, ts.observation, self.info)
+            self.log_rerun_funcs["step"](action, ts.observation, self.info)
             print(f"logging w/ rerun took {(time.time() - start_time) * 1000:.2f}ms")
         if self.log_h5py:
             start_time = time.time()
-            self.log_h5py_funcs["log_step"](
+            self.log_h5py_funcs["step"](
                 self.h5py_grp, action, ts.observation, self.info
             )
             print(f"logging w/ h5py took {(time.time() - start_time) * 1000:.2f}ms")
         return ts.observation, ts.reward, terminated, False, self.info
 
     def close(self):
-        # TODO: close out log files
-        pass
+        if self.log_h5py:
+            self.log_h5py_funcs["end"](self.h5py_grp)
+        if self.log_rerun:
+            self.log_rerun_funcs["end"]()
