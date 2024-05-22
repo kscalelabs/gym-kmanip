@@ -1,8 +1,8 @@
-from collections import OrderedDict
+from collections import OrderedDict as ODict
 from datetime import datetime
 import os
 import time
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, OrderedDict
 import uuid
 
 from dm_control import mujoco
@@ -91,7 +91,7 @@ class KManipTask(base.Task):
         super().before_step(ctrl, physics)
 
     def get_observation(self, physics) -> dict:
-        obs = OrderedDict()
+        obs = ODict()
         if "q_pos" in self.gym_env.obs_list:
             obs["q_pos"] = physics.data.qpos.copy()
             obs["q_pos"] = obs["q_pos"][: self.gym_env.q_len]
@@ -255,7 +255,7 @@ class KManipEnv(gym.Env):
         #       common interface to both the real robot and the mujoco sim robot
         # observation space
         self.obs_list = obs_list
-        _obs_dict: OrderedDict[str, spaces.Space] = OrderedDict()
+        _obs_dict: OrderedDict[str, spaces.Space] = ODict()
         if "q_pos" in obs_list:
             _obs_dict["q_pos"] = spaces.Box(
                 low=np.array([-2 * np.pi] * self.q_len),
@@ -286,7 +286,7 @@ class KManipEnv(gym.Env):
         self.observation_space = spaces.Dict(_obs_dict)
         # action space
         self.act_list = act_list
-        _action_dict: OrderedDict[str, spaces.Space] = OrderedDict()
+        _action_dict: OrderedDict[str, spaces.Space] = ODict()
         if "eel_pos" in act_list:
             _action_dict["eel_pos"] = spaces.Box(
                 low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE

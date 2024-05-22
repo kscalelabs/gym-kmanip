@@ -1,7 +1,7 @@
-from collections import OrderedDict
+from collections import OrderedDict as ODict
 from dataclasses import dataclass
 import os
-from typing import List, Tuple
+from typing import List, OrderedDict, Tuple
 
 from gymnasium.envs.registration import register
 import numpy as np
@@ -40,7 +40,7 @@ HF_LEROBOT_NUM_WORKERS: int = 8
 OBS_DTYPE: np.dtype = np.float64
 ACT_DTYPE: np.dtype = np.float32
 
-Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_SOLO_ARM_HOME_DICT: OrderedDict[str, float] = ODict()
 Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
 Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 0.75
 Q_SOLO_ARM_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 1.0
@@ -57,7 +57,7 @@ Q_SOLO_ARM_HOME: NDArray = np.array(
 )
 Q_SOLO_ARM_KEYS: List[str] = list(Q_SOLO_ARM_HOME_DICT.keys())
 
-Q_DUAL_ARM_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_DUAL_ARM_HOME_DICT: OrderedDict[str, float] = ODict()
 Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 0.0
 Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x8_2_dof_x8"] = 0.75
 Q_DUAL_ARM_HOME_DICT["joint_right_arm_1_x6_1_dof_x6"] = 1.0
@@ -84,7 +84,7 @@ Q_DUAL_ARM_HOME: NDArray = np.array(
 )
 Q_DUAL_ARM_KEYS: List[str] = list(Q_DUAL_ARM_HOME_DICT.keys())
 
-Q_TORSO_HOME_DICT: OrderedDict[str, float] = OrderedDict()
+Q_TORSO_HOME_DICT: OrderedDict[str, float] = ODict()
 Q_TORSO_HOME_DICT["joint_head_1_x4_1_dof_x4"] = -1.0
 Q_TORSO_HOME_DICT["joint_head_1_x4_2_dof_x4"] = 0.0
 Q_TORSO_HOME_DICT["joint_right_arm_1_x8_1_dof_x8"] = 1.7
@@ -151,7 +151,7 @@ class Cam:
     dtype = np.uint8
 
 
-CAMERAS: OrderedDict[str, Cam] = OrderedDict()
+CAMERAS: OrderedDict[str, Cam] = ODict()
 CAMERAS["head"] = Cam(640, 480, 3, 448, (320, 240), "head", "camera/head")
 CAMERAS["top"] = Cam(640, 480, 3, 448, (320, 240), "top", "camera/top")
 CAMERAS["grip_r"] = Cam(60, 40, 3, 45, (30, 20), "grip_r", "camera/grip_r")
