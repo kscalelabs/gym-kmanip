@@ -99,6 +99,17 @@ data is visualized using rerun
 rerun gym_kmanip/data/test.rrd
 ```
 
+## Usage - MuJoCo Sim Visualizer
+
+mujoco provides a nice visualizer where you can directly control the robot
+
+[download standalone mujoco](https://github.com/google-deepmind/mujoco/releases)
+
+```
+tar -xzf ~/Downloads/mujoco-3.1.5-linux-x86_64.tar.gz -C /path/to/mujoco-3.1.5
+/path/to/mujoco-3.1.5/bin/simulate gym_kmanip/assets/_env_solo_arm.xml
+```
+
 ## Help Wanted
 
 ✅ solo arm w/ vision
