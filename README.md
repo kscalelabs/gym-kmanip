@@ -34,7 +34,7 @@
 </table>
 
 
-## Installation
+## Setup - Linux
 
 clone and install dependencies
 
@@ -49,6 +49,16 @@ run tests
 ```bash
 pip install pytest
 pytest tests/test_env.py
+```
+
+## Setup - Jetson Orin AGX
+
+no conda on arm64, just install on bare metal
+
+```bash
+sudo apt-get install libhdf5-dev
+git clone https://github.com/kscalelabs/gym-kmanip.git && cd gym-kmanip
+pip install -e .
 ```
 
 ## Usage - Basic
