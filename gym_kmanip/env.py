@@ -311,6 +311,12 @@ class KManipEnv(gym.Env):
             _action_dict["grip_r"] = spaces.Box(
                 low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
             )
+        if "q_pos" in act_list:
+            _action_dict["q_pos"] = spaces.Box(
+                low=np.array([-2 * np.pi] * self.q_len),
+                high=np.array([2 * np.pi] * self.q_len),
+                dtype=k.ACT_DTYPE,
+            )
         self.action_space = spaces.Dict(_action_dict)
         self.action_len: int = len(self.action_space.spaces)
         # information space
