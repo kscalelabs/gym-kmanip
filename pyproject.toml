@@ -21,15 +21,5 @@ dependencies = [
     "pytest>=8.1.0",
 ]
 
-[project.optional-dependencies]
-orin = [
-    "mujoco==2.3.7"
-]
-dev = [
-    "debugpy>=1.8.1",
-    "pytest>=8.1.0",
-    "pytest-cov>=5.0.0"
-]
-
 [project.urls]
 Homepage = "https://github.com/kscale/gym-kmanip"
