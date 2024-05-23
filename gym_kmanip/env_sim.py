@@ -24,27 +24,16 @@ class KManipTask(base.Task):
         # TODO: jitter starting joint angles
         np.copyto(physics.data.qpos[: self.gym_env.q_len], self.gym_env.q_pos_home)
         # randomize cube spawn
-        cube_pos_x = self.random.uniform(*k.CUBE_SPAWN_RANGE_X)
-        cube_pos_y = self.random.uniform(*k.CUBE_SPAWN_RANGE_Y)
-        cube_pos_z = self.random.uniform(*k.CUBE_SPAWN_RANGE_Z)
         box_start_idx = physics.model.name2id("cube_joint", "joint")
         np.copyto(
             physics.data.qpos[box_start_idx : box_start_idx + 3],
-            np.array([cube_pos_x, cube_pos_y, cube_pos_z]),
+            np.random.uniform(k.CUBE_SPAWN_RANGE[:, 0], k.CUBE_SPAWN_RANGE[:, 1]),
         )
         super().initialize_episode(physics)
 
     def before_step(self, action, physics):
         q_pos: NDArray = physics.data.qpos[:].copy()
         ctrl: NDArray = physics.data.ctrl.copy().astype(k.ACT_DTYPE)
-        if "eer_pos" in action:
-            np.copyto(physics.data.mocap_pos[k.MOCAP_ID_R], action["eer_pos"])
-        if "eer_orn" in action:
-            np.copyto(physics.data.mocap_quat[k.MOCAP_ID_R], action["eer_orn"])
-        if "eel_pos" in action:
-            np.copyto(physics.data.mocap_pos[k.MOCAP_ID_L], action["eel_pos"])
-        if "eel_orn" in action:
-            np.copyto(physics.data.mocap_quat[k.MOCAP_ID_L], action["eel_orn"])
         if "grip_r" in action:
             grip_slider_r = k.EE_S_MIN + action["grip_r"] * k.EE_S_RANGE
             ctrl[self.gym_env.ctrl_id_r_grip[0]] = grip_slider_r
@@ -54,10 +43,18 @@ class KManipTask(base.Task):
             ctrl[self.gym_env.ctrl_id_l_grip[0]] = grip_slider_l
             ctrl[self.gym_env.ctrl_id_l_grip[1]] = grip_slider_l
         if "eer_pos" in action:
+            # ee_pos will be normalized to [-1, 1], need to undo that here
+            eer_pos: NDArray = action["eer_pos"] * k.EE_POS_RANGE
+            eer_pos += physics.data.site("eer_site_pos").xpos
+            # ee_orn will be [-1, 1], potentially invalid quaternion, need to normalize
+            eer_orn: NDArray = action["eer_orn"]
+            eer_orn /= np.linalg.norm(eer_orn) + k.Q_NORM_EPS
+            np.copyto(physics.data.mocap_pos[k.MOCAP_ID_R], eer_pos)
+            np.copyto(physics.data.mocap_quat[k.MOCAP_ID_R], eer_orn)
             ctrl[self.gym_env.q_id_r_mask] = ik(
                 physics,
-                goal_pos=action["eer_pos"],
-                goal_orn=action["eer_orn"],
+                goal_pos=eer_pos,
+                goal_orn=eer_orn,
                 ee_site="eer_site_pos",
                 q_mask=self.gym_env.q_id_r_mask,
                 q_pos_home=self.gym_env.q_pos_home,
@@ -65,10 +62,18 @@ class KManipTask(base.Task):
             )
             self.gym_env.q_pos_prev = q_pos
         if "eel_pos" in action:
+            # pos will be normalized to [-1, 1], need to undo that here
+            eel_pos: NDArray = action["eel_pos"] * k.EE_POS_RANGE
+            eel_pos += physics.data.site("eel_site_pos").xpos
+            # orn will be [-1, 1], potentially invalid quaternion, need to normalize
+            eel_orn: NDArray = action["eel_orn"]
+            eel_orn /= np.linalg.norm(eel_orn) + k.Q_NORM_EPS
+            np.copyto(physics.data.mocap_pos[k.MOCAP_ID_L], eel_pos)
+            np.copyto(physics.data.mocap_quat[k.MOCAP_ID_L], eel_orn)
             ctrl[self.gym_env.q_id_l_mask] = ik(
                 physics,
-                goal_pos=action["eel_pos"],
-                goal_orn=action["eel_orn"],
+                goal_pos=eel_pos,
+                goal_orn=eel_orn,
                 ee_site="eel_site_pos",
                 q_mask=self.gym_env.q_id_l_mask,
                 q_pos_home=self.gym_env.q_pos_home,
@@ -79,23 +84,36 @@ class KManipTask(base.Task):
             ctrl[:] = action["q_pos"]
         # exponential filter for smooth control
         ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl
-        # TODO: debug why is this needed, try to remove
-        physics.data.qpos[:] = q_pos
-        physics.data.qvel[:] = 0
-        physics.data.qacc[:] = 0
         super().before_step(ctrl, physics)
 
     def get_observation(self, physics) -> dict:
         obs = ODict()
         if "q_pos" in self.gym_env.obs_list:
-            obs["q_pos"] = physics.data.qpos.copy()
-            obs["q_pos"] = obs["q_pos"][: self.gym_env.q_len]
+            q_pos: NDArray = physics.data.qpos[: self.gym_env.q_len].copy()
+            # normalize to joint position limits
+            q_pos -= physics.model.jnt_range[:, 0][: self.gym_env.q_len]
+            q_pos /= (
+                physics.model.jnt_range[:, 1][: self.gym_env.q_len]
+                - physics.model.jnt_range[:, 0][: self.gym_env.q_len]
+            )
+            # clip to [-1, 1]
+            q_pos = np.clip(q_pos, -1, 1)
+            obs["q_pos"] = q_pos
         if "q_vel" in self.gym_env.obs_list:
-            obs["q_vel"] = physics.data.qvel.copy()
-            obs["q_vel"] = obs["q_vel"][: self.gym_env.q_len]
+            q_vel: NDArray = physics.data.qvel.copy()
+            # normalize to joint velocity limits
+            q_vel /= k.MAX_Q_VEL
+            # clip to [-1, 1]
+            q_vel = np.clip(q_vel, -1, 1)
+            obs["q_vel"] = q_vel[: self.gym_env.q_len]
         if "cube_pos" in self.gym_env.obs_list:
-            obs["cube_pos"] = physics.data.qpos[-7:-4].copy()
-            # TODO: normalize to spawn range
+            cube_pos: NDArray = physics.data.qpos[-7:-4].copy()
+            # normalize cube pos to spawn range
+            cube_pos -= k.CUBE_SPAWN_RANGE[:, 0]
+            cube_pos /= k.CUBE_SPAWN_RANGE[:, 1] - k.CUBE_SPAWN_RANGE[:, 0]
+            # clip to [-1, 1]
+            cube_pos = np.clip(cube_pos, -1, 1)
+            obs["cube_pos"] = cube_pos
         if "cube_orn" in self.gym_env.obs_list:
             obs["cube_orn"] = physics.data.qpos[-4:].copy()
         for cam in self.gym_env.cameras:

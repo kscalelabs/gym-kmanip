@@ -130,16 +130,17 @@ def ik(
             ik_func,
             q_pos,
             jac=ik_jac_func,
+            bounds=(physics.model.jnt_range[q_mask, 0], physics.model.jnt_range[q_mask, 1]),
             verbose=0,
         )
-        # TODO: clip to joint velocity limits
-        # np.clip(
-        #     result.x,
-        #     q_pos - k.IK_MAX_VEL * k.CONTROL_TIMESTEP,
-        #     q_pos + k.IK_MAX_VEL * k.CONTROL_TIMESTEP,
-        #     out=q_pos,
-        # )
         q_pos = result.x
+        # clip to joint velocity limits
+        np.clip(
+            q_pos,
+            q_pos - k.MAX_Q_VEL * k.CONTROL_TIMESTEP,
+            q_pos + k.MAX_Q_VEL * k.CONTROL_TIMESTEP,
+            out=q_pos,
+        )
         # clip to joint position limits
         np.clip(
             q_pos,

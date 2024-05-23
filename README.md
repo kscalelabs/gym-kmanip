@@ -34,7 +34,7 @@
 </table>
 
 
-## Setup - Linux
+## Setup
 
 clone and install dependencies
 
@@ -44,16 +44,14 @@ conda create -y -n gym-kmanip python=3.10 && conda activate gym-kmanip
 pip install -e .
 ```
 
-run tests
+run tests to verify installation
 
 ```bash
 pip install pytest
-pytest tests/test_env.py
+pytest
 ```
 
-## Setup - Jetson Orin AGX
-
-no conda on arm64, just install on bare metal
+for installation on the edge, just install on bare metal
 
 ```bash
 sudo apt-get install libhdf5-dev
@@ -61,30 +59,54 @@ git clone https://github.com/kscalelabs/gym-kmanip.git && cd gym-kmanip
 pip install -e .
 ```
 
-## Usage - Basic
+## Getting Started
 
-visualize the mujoco scene
+visualize one of the mujoco environments using the viewer
 
 ```bash
 python gym_kmanip/examples/1_view_env.py
 ```
 
-record a video of the mujoco scene
+alternatively mujoco provides a nice standalone visualizer
 
-```bash
-python gym_kmanip/examples/2_record_video.py
+[download standalone mujoco](https://github.com/google-deepmind/mujoco/releases)
+
+```
+tar -xzf ~/Downloads/mujoco-3.1.5-linux-x86_64.tar.gz -C /path/to/mujoco-3.1.5
+/path/to/mujoco-3.1.5/bin/simulate gym_kmanip/assets/_env_solo_arm.xml
 ```
 
-## Usage - Recording Data
+## Recording Data
+
+data can be recorded to a rerun `.rrd` file for visualization
+
+```bash
+python gym_kmanip/examples/record_to_rrd.py
+rerun gym_kmanip/data/foo/episode_1.rrd
+```
+
+data can be recorded to a h5py `.hdf5` file for training models
+
+```bash
+python gym_kmanip/examples/record_to_hdf5.py
+```
+
+you can also record data to a video file for sharing on social media
+
+```bash
+python gym_kmanip/examples/record_to_mp4.py
+```
+
+## Teleop
+
+teleop can be used to control the robot and optionally record datasets
 
 🤗 [K-Scale HuggingFace Datasets](https://huggingface.co/kscalelabs)
 
-data is recorded via teleop, this requires additional dependencies
+you will need additional dependencies
 
 ```bash
-pip install opencv-python==4.9.0.80
 pip install vuer==0.0.30
-pip install rerun-sdk==0.16.0
 ```
 
 start the server on the robot computer
@@ -101,23 +123,14 @@ ngrok http 8012
 
 open the browser app on the vr headset and go to the ngrok url
 
-## Usage - Visualizing Data
+## Real Robot
 
-data is visualized using rerun
+the real robot works just like any other environment
+
+you will need additional dependencies
 
 ```bash
-rerun gym_kmanip/data/test.rrd
-```
-
-## Usage - MuJoCo Sim Visualizer
-
-mujoco provides a nice visualizer where you can directly control the robot
-
-[download standalone mujoco](https://github.com/google-deepmind/mujoco/releases)
-
-```
-tar -xzf ~/Downloads/mujoco-3.1.5-linux-x86_64.tar.gz -C /path/to/mujoco-3.1.5
-/path/to/mujoco-3.1.5/bin/simulate gym_kmanip/assets/_env_solo_arm.xml
+pip install opencv-python==4.9.0.80
 ```
 
 ## Help Wanted

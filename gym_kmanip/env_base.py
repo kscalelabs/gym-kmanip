@@ -119,14 +119,16 @@ class KManipEnv(gym.Env):
         _obs_dict: OrderedDict[str, spaces.Space] = ODict()
         if "q_pos" in obs_list:
             _obs_dict["q_pos"] = spaces.Box(
-                low=np.array([-2 * np.pi] * self.q_len),
-                high=np.array([2 * np.pi] * self.q_len),
+                low=-1,
+                high=1,
+                shape=(self.q_len,),
                 dtype=k.OBS_DTYPE,
             )
         if "q_vel" in obs_list:
             _obs_dict["q_vel"] = spaces.Box(
-                low=np.array([-k.MAX_Q_VEL] * self.q_len),
-                high=np.array([k.MAX_Q_VEL] * self.q_len),
+                low=-1,
+                high=1,
+                shape=(self.q_len,),
                 dtype=k.OBS_DTYPE,
             )
         if "cube_pos" in obs_list:
@@ -174,8 +176,9 @@ class KManipEnv(gym.Env):
             )
         if "q_pos" in act_list:
             _action_dict["q_pos"] = spaces.Box(
-                low=np.array([-2 * np.pi] * self.q_len),
-                high=np.array([2 * np.pi] * self.q_len),
+                low=-1,
+                high=1,
+                shape=(self.q_len,),
                 dtype=k.ACT_DTYPE,
             )
         self.action_space = spaces.Dict(_action_dict)

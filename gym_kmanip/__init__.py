@@ -25,10 +25,20 @@ DUAL_ARM_URDF: str = "stompy_dual_arm_tiny_glb.urdf"
 TORSO_URDF: str = "stompy_tiny_glb/robot.urdf"
 
 # Misc
-FPS: int = 30
 MAX_EPISODE_STEPS: int = 64
+FPS: int = 30
 CONTROL_TIMESTEP: float = 0.02  # ms
 MAX_Q_VEL: float = np.pi  # rad/s
+
+# exponential filtering for control signal
+CTRL_ALPHA: float = 0.1
+
+# IK hyperparameters
+IK_RES_RAD: float = 0.02
+IK_RES_REG_PREV: float = 6e-3
+IK_RES_REG_HOME: float = 2e-6
+IK_JAC_RAD: float = 0.02
+IK_JAC_REG: float = 9e-3
 
 # Datasets are stored in HDF5 format on HuggingFace's LeRobot
 H5PY_CHUNK_SIZE_BYTES: int = 1024**2 * 2
@@ -127,15 +137,6 @@ CTRL_ID_L_GRIP_TORSO: NDArray = np.array([17, 18])
 MOCAP_ID_R: int = 0
 MOCAP_ID_L: int = 1
 
-# IK hyperparameters
-# TODO: more tuning
-IK_RES_RAD: float = 0.02
-IK_RES_REG_PREV: float = 6e-3
-IK_RES_REG_HOME: float = 2e-6
-IK_JAC_RAD: float = 0.02
-IK_JAC_REG: float = 9e-3
-IK_MAX_VEL: float = 2.0
-
 
 @dataclass
 class Cam:
@@ -158,16 +159,20 @@ CAMERAS["grip_r"] = Cam(60, 40, 3, 45, (30, 20), "grip_r", "camera/grip_r")
 CAMERAS["grip_l"] = Cam(60, 40, 3, 45, (30, 20), "grip_l", "camera/grip_l")
 
 # cube is randomly spawned on episode start
-CUBE_SPAWN_RANGE_X: Tuple[float] = [0.1, 0.3]
-CUBE_SPAWN_RANGE_Y: Tuple[float] = [0.5, 0.7]
-CUBE_SPAWN_RANGE_Z: Tuple[float] = [0.6, 0.7]
+CUBE_SPAWN_RANGE: NDArray = np.array(
+    [
+        [0.1, 0.3],  # X
+        [0.5, 0.7],  # Y
+        [0.6, 0.7],  # Z
+    ]
+)
 
-# reward shaping
-REWARD_SUCCESS_THRESHOLD: float = 2.0
-REWARD_VEL_PENALTY: float = 0.01
-REWARD_GRIP_DIST: float = 0.01
-REWARD_TOUCH_CUBE: float = 1.0
-REWARD_LIFT_CUBE: float = 1.0
+# ee control will expect values in range [-1, 1]
+# this will define a small "box" around the current pos for the ee
+EE_POS_RANGE: float = 0.01  # meters
+
+# when normalizing quaternions, we need to ensure they are not zero
+Q_NORM_EPS: float = 1e-6
 
 # pre-compute gripper "slider" ranges for faster callback
 EE_S_MIN: float = 0.0
@@ -175,8 +180,12 @@ EE_S_MAX: float = -0.034
 EE_S_RANGE: float = EE_S_MAX - EE_S_MIN
 EE_DEFAULT_ORN: NDArray = np.array([1, 0, 0, 0])
 
-# exponential filtering for control signal
-CTRL_ALPHA: float = 0.2
+# reward shaping
+REWARD_SUCCESS_THRESHOLD: float = 2.0
+REWARD_VEL_PENALTY: float = 0.01
+REWARD_GRIP_DIST: float = 0.01
+REWARD_TOUCH_CUBE: float = 1.0
+REWARD_LIFT_CUBE: float = 1.0
 
 # MuJoCo and Scipy/Rerun use different quaternion conventions
 # https://github.com/clemense/quaternion-conventions
