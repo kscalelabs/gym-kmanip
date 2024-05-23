@@ -61,8 +61,6 @@ class KManipEnv(gym.Env):
         self.episode_idx: int = 0
         # home position of the robot
         self.q_pos_home: NDArray = q_pos_home
-        # used for smooth control
-        self.q_pos_prev: NDArray = q_pos_home
         self.q_len: int = len(q_pos_home)
         # joint dictionaries and keys are needed for teleop
         self.q_dict: OrderedDict[str, float] = q_dict
@@ -174,11 +172,18 @@ class KManipEnv(gym.Env):
             _action_dict["grip_r"] = spaces.Box(
                 low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
             )
-        if "q_pos" in act_list:
-            _action_dict["q_pos"] = spaces.Box(
+        if "q_pos_r" in act_list:
+            _action_dict["q_pos_r"] = spaces.Box(
                 low=-1,
                 high=1,
-                shape=(self.q_len,),
+                shape=(len(self.q_id_r_mask),),
+                dtype=k.ACT_DTYPE,
+            )
+        if "q_pos_l" in act_list:
+            _action_dict["q_pos_l"] = spaces.Box(
+                low=-1,
+                high=1,
+                shape=(len(self.q_id_l_mask),),
                 dtype=k.ACT_DTYPE,
             )
         self.action_space = spaces.Dict(_action_dict)

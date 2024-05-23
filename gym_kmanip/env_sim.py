@@ -36,7 +36,7 @@ class KManipTask(base.Task):
         super().initialize_episode(physics)
 
     def before_step(self, action, physics):
-        q_pos: NDArray = physics.data.qpos[:].copy()
+        q_pos: NDArray = physics.data.qpos.copy()
         ctrl: NDArray = physics.data.ctrl.copy().astype(k.ACT_DTYPE)
         if "grip_r" in action:
             # grip action will be [-1, 1], need to undo that here
@@ -72,9 +72,8 @@ class KManipTask(base.Task):
                 ee_site="eer_site_pos",
                 q_mask=self.gym_env.q_id_r_mask,
                 q_pos_home=self.gym_env.q_pos_home,
-                q_pos_prev=self.gym_env.q_pos_prev,
+                q_pos_prev=q_pos,
             )
-            self.gym_env.q_pos_prev = q_pos
         if "eel_pos" in action:
             # pos will be normalized to [-1, 1], need to undo that here
             eel_pos: NDArray = action["eel_pos"] * k.EE_POS_DELTA
@@ -93,11 +92,12 @@ class KManipTask(base.Task):
                 ee_site="eel_site_pos",
                 q_mask=self.gym_env.q_id_l_mask,
                 q_pos_home=self.gym_env.q_pos_home,
-                q_pos_prev=self.gym_env.q_pos_prev,
+                q_pos_prev=q_pos,
             )
-            self.gym_env.q_pos_prev = q_pos
-        if "q_pos" in action:
-            ctrl[:] = action["q_pos"]
+        if "q_pos_r" in action:
+            ctrl[self.gym_env.q_id_r_mask] = q_pos[self.gym_env.q_id_r_mask] + action["q_pos_r"] * k.Q_POS_DELTA
+        if "q_pos_l" in action:
+            ctrl[self.gym_env.q_id_l_mask] = q_pos[self.gym_env.q_id_l_mask] + action["q_pos_l"] * k.Q_POS_DELTA
         # exponential filter for smooth control
         ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl
         super().before_step(ctrl, physics)
@@ -149,11 +149,11 @@ class KManipTask(base.Task):
         if "grip_l" in self.gym_env.act_list:
             grip_pos_l = physics.named.data.xpos["eel_site"]
             dist_l = np.linalg.norm(cube_pos - grip_pos_l)
-            reward += k.REWARD_GRIP_DIST * (1 / (dist_l + 1e-6))
+            reward += k.REWARD_GRIP_DIST * (1 / (dist_l + k.EPSILON))
         if "grip_r" in self.gym_env.act_list:
             grip_pos_r = physics.named.data.xpos["eer_site"]
             dist_r = np.linalg.norm(cube_pos - grip_pos_r)
-            reward += k.REWARD_GRIP_DIST * (1 / (dist_r + 1e-6))
+            reward += k.REWARD_GRIP_DIST * (1 / (dist_r + k.EPSILON))
         # contact detection for cube, hands, table
         touch_grip_l: bool = False
         touch_grip_r: bool = False

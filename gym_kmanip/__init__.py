@@ -173,28 +173,32 @@ CUBE_SPAWN_RANGE: NDArray = np.array(
 # this will define the max "delta" around the current ee pose
 EE_POS_DELTA: NDArray = np.array(
     [
-        0.01, # X (meters)
-        0.01, # Y (meters)
-        0.01, # Z (meters)
+        0.001, # X (meters)
+        0.001, # Y (meters)
+        0.001, # Z (meters)
     ]
 )
 EE_ORN_DELTA: NDArray = np.array(
     [
-        0.1, # X (radians)
-        0.1, # Y (radians)
-        0.1, # Z (radians)
+        0.01, # X (radians)
+        0.01, # Y (radians)
+        0.01, # Z (radians)
     ]
 )
 # default orientation if ee_orn not specified
 EE_DEFAULT_ORN: NDArray = np.array([1, 0, 0, 0])
 
-# when normalizing quaternions, we need to ensure they are not zero
-Q_NORM_EPS: float = 1e-6
+# prevent rounding errors
+EPSILON: float = 1e-6
+
+# q control will expect values in range [-1, 1]
+# this will define the max "delta" around the current q pos
+Q_POS_DELTA: NDArray = 0.1 # radians
 
 # pre-compute gripper "slider" ranges for faster callback
 EE_S_MIN: float = -0.029 # closed
 EE_S_MAX: float = 0.005 # open
-EE_S_DELTA: float = 0.001
+EE_S_DELTA: float = 0.0001
 
 # reward shaping
 REWARD_SUCCESS_THRESHOLD: float = 2.0
@@ -273,7 +277,7 @@ register(
             "cube_orn",  # cube orientation
         ],
         "act_list": [
-            "q_pos",  # joint positions
+            "q_pos_r",  # joint positions for right arm
             "grip_r",  # right gripper
         ],
         "q_pos_home": Q_SOLO_ARM_HOME,
@@ -331,6 +335,36 @@ register(
             "eel_orn",  # left end effector orientation
             "eer_pos",  # right end effector position
             "eer_orn",  # right end effector orientation
+            "grip_l",  # left gripper
+            "grip_r",  # right gripper
+        ],
+        "q_pos_home": Q_DUAL_ARM_HOME,
+        "q_dict": Q_DUAL_ARM_HOME_DICT,
+        "q_keys": Q_DUAL_ARM_KEYS,
+        "q_id_r_mask": Q_ID_R_MASK_DUAL,
+        "q_id_l_mask": Q_ID_L_MASK_DUAL,
+        "ctrl_id_r_grip": CTRL_ID_R_GRIP_DUAL,
+        "ctrl_id_l_grip": CTRL_ID_L_GRIP_DUAL,
+    },
+)
+
+register(
+    id="KManipDualArmQPos",
+    entry_point="gym_kmanip.env_base:KManipEnv",
+    max_episode_steps=MAX_EPISODE_STEPS,
+    nondeterministic=True,
+    kwargs={
+        "mjcf_filename": DUAL_ARM_MJCF,
+        "urdf_filename": DUAL_ARM_URDF,
+        "obs_list": [
+            "q_pos",  # joint positions
+            "q_vel",  # joint velocities
+            "cube_pos",  # cube position
+            "cube_orn",  # cube orientation
+        ],
+        "act_list": [
+            "q_pos_r",  # joint positions for right arm
+            "q_pos_l",  # joint positions for left arm
             "grip_l",  # left gripper
             "grip_r",  # right gripper
         ],

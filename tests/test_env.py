@@ -12,6 +12,7 @@ import gym_kmanip
         "KManipSoloArmQPos",
         "KManipSoloArmVision",
         "KManipDualArm",
+        "KManipDualArmQPos",
         "KManipDualArmVision",
         "KManipTorso",
         "KManipTorsoVision",
