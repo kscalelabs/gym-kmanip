@@ -156,7 +156,7 @@ class KManipEnv(gym.Env):
             )
         if "eel_orn" in act_list:
             _action_dict["eel_orn"] = spaces.Box(
-                low=-1, high=1, shape=(4,), dtype=k.ACT_DTYPE
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
             )
         if "eer_pos" in act_list:
             _action_dict["eer_pos"] = spaces.Box(
@@ -164,7 +164,7 @@ class KManipEnv(gym.Env):
             )
         if "eer_orn" in act_list:
             _action_dict["eer_orn"] = spaces.Box(
-                low=-1, high=1, shape=(4,), dtype=k.ACT_DTYPE
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
             )
         if "grip_l" in act_list:
             _action_dict["grip_l"] = spaces.Box(

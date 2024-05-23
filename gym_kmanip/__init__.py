@@ -124,10 +124,12 @@ Q_TORSO_KEYS: List[str] = list(Q_TORSO_HOME_DICT.keys())
 # MuJoCo will have different IDs for q and ctrl based on environment
 Q_ID_R_MASK_SOLO: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
 CTRL_ID_R_GRIP_SOLO: NDArray = np.array([8, 9])
+
 Q_ID_R_MASK_DUAL: NDArray = np.array([0, 1, 2, 3, 4, 5, 6])
 Q_ID_L_MASK_DUAL: NDArray = np.array([10, 11, 12, 13, 14, 15, 16])
 CTRL_ID_R_GRIP_DUAL: NDArray = np.array([8, 9])
 CTRL_ID_L_GRIP_DUAL: NDArray = np.array([18, 19])
+
 Q_ID_R_MASK_TORSO: NDArray = np.array([2, 3, 4, 5, 6, 7])
 Q_ID_L_MASK_TORSO: NDArray = np.array([11, 12, 13, 14, 15, 16])
 CTRL_ID_R_GRIP_TORSO: NDArray = np.array([8, 9])
@@ -168,17 +170,31 @@ CUBE_SPAWN_RANGE: NDArray = np.array(
 )
 
 # ee control will expect values in range [-1, 1]
-# this will define a small "box" around the current pos for the ee
-EE_POS_RANGE: float = 0.01  # meters
+# this will define the max "delta" around the current ee pose
+EE_POS_DELTA: NDArray = np.array(
+    [
+        0.01, # X (meters)
+        0.01, # Y (meters)
+        0.01, # Z (meters)
+    ]
+)
+EE_ORN_DELTA: NDArray = np.array(
+    [
+        0.1, # X (radians)
+        0.1, # Y (radians)
+        0.1, # Z (radians)
+    ]
+)
+# default orientation if ee_orn not specified
+EE_DEFAULT_ORN: NDArray = np.array([1, 0, 0, 0])
 
 # when normalizing quaternions, we need to ensure they are not zero
 Q_NORM_EPS: float = 1e-6
 
 # pre-compute gripper "slider" ranges for faster callback
-EE_S_MIN: float = 0.0
-EE_S_MAX: float = -0.034
-EE_S_RANGE: float = EE_S_MAX - EE_S_MIN
-EE_DEFAULT_ORN: NDArray = np.array([1, 0, 0, 0])
+EE_S_MIN: float = -0.029 # closed
+EE_S_MAX: float = 0.005 # open
+EE_S_DELTA: float = 0.001
 
 # reward shaping
 REWARD_SUCCESS_THRESHOLD: float = 2.0

@@ -4,10 +4,10 @@ import gymnasium as gym
 import gym_kmanip
 
 # choose your environment
-# ENV_NAME: str = "KManipSoloArm"
+ENV_NAME: str = "KManipSoloArm"
 # ENV_NAME: str = "KManipSoloArmQPos"
 # ENV_NAME: str = "KManipSoloArmVision"
-ENV_NAME: str = "KManipDualArm"
+# ENV_NAME: str = "KManipDualArm"
 # ENV_NAME: str = "KManipDualArmVision"
 # ENV_NAME: str = "KManipTorso"
 # ENV_NAME: str = "KManipTorsoVision"
