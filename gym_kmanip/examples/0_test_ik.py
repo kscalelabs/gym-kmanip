@@ -15,9 +15,9 @@ ENV_NAME: str = "KManipDualArm"
 # ENV_NAME: str = "KManipTorsoVision"
 env = gym.make(ENV_NAME)
 # start pos for reach targets
-pos_r = env.unwrapped.mj_env.physics.data.mocap_pos[k.MOCAP_ID_R].copy()
+pos_r = env.unwrapped.env.physics.data.mocap_pos[k.MOCAP_ID_R].copy()
 if "Solo" not in ENV_NAME:
-    pos_l = env.unwrapped.mj_env.physics.data.mocap_pos[k.MOCAP_ID_L].copy()
+    pos_l = env.unwrapped.env.physics.data.mocap_pos[k.MOCAP_ID_L].copy()
 
 # TODO: try larger amplitudes, get a sense of the arm range
 AMPLITUDE_X = 0.08
@@ -30,7 +30,7 @@ Z_ANGLE_AMPLITUDE = 0.6  # radians
 
 def policy(ts):
     action = env.action_space.sample()
-    sim_time = env.unwrapped.mj_env.physics.data.time
+    sim_time = env.unwrapped.env.physics.data.time
     if "eer_pos" in action:
         action["eer_pos"] = np.array(
             [
@@ -64,4 +64,4 @@ def policy(ts):
 
     return action
 
-viewer.launch(env.unwrapped.mj_env, policy=policy)
+viewer.launch(env.unwrapped.env, policy=policy)

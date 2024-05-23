@@ -44,4 +44,4 @@ Ctrl R dblclick / Esc   Track
 Ctrl [Shift] L/R drag   Perturb
 """
 
-viewer.launch(env.unwrapped.mj_env, policy=policy)
+viewer.launch(env.unwrapped.env, policy=policy)

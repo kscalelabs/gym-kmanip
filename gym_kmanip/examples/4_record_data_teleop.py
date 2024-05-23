@@ -27,8 +27,8 @@ env = gym.make(
     log_prefix="teleop",
 )
 env.reset()
-mj_data = env.unwrapped.mj_env.physics.data
-mj_model = env.unwrapped.mj_env.physics.model
+mj_data = env.unwrapped.env.physics.data
+mj_model = env.unwrapped.env.physics.model
 
 # is this environment bimanual?
 BIMANUAL: bool = True

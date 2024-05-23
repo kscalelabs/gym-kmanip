@@ -19,10 +19,10 @@ frames = []
 for _ in range(k.MAX_EPISODE_STEPS):
     action = env.action_space.sample()
     if "eer_pos" in action:
-        action["eer_pos"] = env.unwrapped.mj_env.physics.data.body("cube").xpos
+        action["eer_pos"] = env.unwrapped.env.physics.data.body("cube").xpos
         action["eer_orn"] = np.array([1, 0, 0, 0])
     if "eel_pos" in action:
-        action["eel_pos"] = env.unwrapped.mj_env.physics.data.body("cube").xpos
+        action["eel_pos"] = env.unwrapped.env.physics.data.body("cube").xpos
         action["eel_orn"] = np.array([1, 0, 0, 0])
     observation, reward, terminated, truncated, info = env.step(action)
     image = env.render()

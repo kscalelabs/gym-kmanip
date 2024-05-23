@@ -208,7 +208,7 @@ def vuer2mj_orn(orn: R) -> NDArray:
 
 register(
     id="KManipSoloArm",
-    entry_point="gym_kmanip.env:KManipEnv",
+    entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
@@ -235,7 +235,7 @@ register(
 
 register(
     id="KManipSoloArmQPos",
-    entry_point="gym_kmanip.env:KManipEnv",
+    entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
@@ -262,7 +262,7 @@ register(
 
 register(
     id="KManipSoloArmVision",
-    entry_point="gym_kmanip.env:KManipEnv",
+    entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
@@ -289,7 +289,7 @@ register(
 
 register(
     id="KManipDualArm",
-    entry_point="gym_kmanip.env:KManipEnv",
+    entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
@@ -321,7 +321,7 @@ register(
 
 register(
     id="KManipDualArmVision",
-    entry_point="gym_kmanip.env:KManipEnv",
+    entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
@@ -354,7 +354,7 @@ register(
 
 register(
     id="KManipTorso",
-    entry_point="gym_kmanip.env:KManipEnv",
+    entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
@@ -386,7 +386,7 @@ register(
 
 register(
     id="KManipTorsoVision",
-    entry_point="gym_kmanip.env:KManipEnv",
+    entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
     kwargs={
