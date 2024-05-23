@@ -31,7 +31,7 @@ CONTROL_TIMESTEP: float = 0.02  # ms
 MAX_Q_VEL: float = np.pi  # rad/s
 
 # exponential filtering for control signal
-CTRL_ALPHA: float = 0.1
+CTRL_ALPHA: float = 0.2
 
 # IK hyperparameters
 IK_RES_RAD: float = 0.02
@@ -173,16 +173,16 @@ CUBE_SPAWN_RANGE: NDArray = np.array(
 # this will define the max "delta" around the current ee pose
 EE_POS_DELTA: NDArray = np.array(
     [
-        0.001, # X (meters)
-        0.001, # Y (meters)
-        0.001, # Z (meters)
+        0.01, # X (meters)
+        0.01, # Y (meters)
+        0.01, # Z (meters)
     ]
 )
 EE_ORN_DELTA: NDArray = np.array(
     [
-        0.01, # X (radians)
-        0.01, # Y (radians)
-        0.01, # Z (radians)
+        0.1, # X (radians)
+        0.1, # Y (radians)
+        0.1, # Z (radians)
     ]
 )
 # default orientation if ee_orn not specified
@@ -198,7 +198,7 @@ Q_POS_DELTA: NDArray = 0.1 # radians
 # pre-compute gripper "slider" ranges for faster callback
 EE_S_MIN: float = -0.029 # closed
 EE_S_MAX: float = 0.005 # open
-EE_S_DELTA: float = 0.0001
+EE_S_DELTA: float = 0.001
 
 # reward shaping
 REWARD_SUCCESS_THRESHOLD: float = 2.0

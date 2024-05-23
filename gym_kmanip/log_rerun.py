@@ -75,7 +75,7 @@ def step(
             "world/eer",
             rr.Transform3D(
                 translation=action["eer_pos"],
-                rotation=rr.Quaternion(xyzw=action["eer_orn"][k.WXYZ_2_XYZW]),
+                # rotation=rr.Quaternion(xyzw=action["eer_orn"][k.WXYZ_2_XYZW]),
             ),
         )
     if "eel_pos" in action:
@@ -83,7 +83,7 @@ def step(
             "world/eel",
             rr.Transform3D(
                 translation=action["eel_pos"],
-                rotation=rr.Quaternion(xyzw=action["eel_orn"][k.WXYZ_2_XYZW]),
+                # rotation=rr.Quaternion(xyzw=action["eel_orn"][k.WXYZ_2_XYZW]),
             ),
         )
     if "grip_r" in action:
@@ -98,7 +98,7 @@ def step(
             "world/cube",
             rr.Transform3D(
                 translation=observation["cube_pos"],
-                rotation=rr.Quaternion(xyzw=observation["cube_orn"][k.WXYZ_2_XYZW]),
+                # rotation=rr.Quaternion(xyzw=observation["cube_orn"][k.WXYZ_2_XYZW]),
             ),
         )
     for cam in info["cameras"]:
