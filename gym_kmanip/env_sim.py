@@ -63,7 +63,7 @@ class KManipTask(base.Task):
             eer_orn: NDArray = action["eer_orn"] * k.EE_ORN_DELTA
             eer_orn += R.from_matrix(physics.data.site("eer_site_pos").xmat.reshape(3, 3)).as_euler("xyz")
             # TODO: clip to ee orn limits
-            eer_orn = R.from_euler("xyz", eer_orn).as_quat()
+            eer_orn = R.from_euler("xyz", eer_orn).as_quat()[k.XYZW_2_WXYZ]
             np.copyto(physics.data.mocap_quat[k.MOCAP_ID_R], eer_orn)
             ctrl[self.gym_env.q_id_r_mask] = ik(
                 physics,
@@ -83,7 +83,7 @@ class KManipTask(base.Task):
             eel_orn: NDArray = action["eel_orn"] * k.EE_ORN_DELTA
             eel_orn += R.from_matrix(physics.data.site("eel_site_pos").xmat.reshape(3, 3)).as_euler("xyz")
             # TODO: clip to ee orn limits
-            eel_orn = R.from_euler("xyz", eel_orn).as_quat()
+            eel_orn = R.from_euler("xyz", eel_orn).as_quat()[k.XYZW_2_WXYZ]
             np.copyto(physics.data.mocap_quat[k.MOCAP_ID_L], eel_orn)
             ctrl[self.gym_env.q_id_l_mask] = ik(
                 physics,
