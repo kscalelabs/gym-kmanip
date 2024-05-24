@@ -31,7 +31,7 @@ CONTROL_TIMESTEP: float = 0.02  # ms
 MAX_Q_VEL: float = np.pi  # rad/s
 
 # exponential filtering for control signal
-CTRL_ALPHA: float = 0.2
+CTRL_ALPHA: float = 1.0
 
 # IK hyperparameters
 IK_RES_RAD: float = 0.02
@@ -198,7 +198,7 @@ Q_POS_DELTA: NDArray = 0.1 # radians
 # pre-compute gripper "slider" ranges for faster callback
 EE_S_MIN: float = -0.029 # closed
 EE_S_MAX: float = 0.005 # open
-EE_S_DELTA: float = 0.001
+EE_S_DELTA: float = 0.0001
 
 # reward shaping
 REWARD_SUCCESS_THRESHOLD: float = 2.0

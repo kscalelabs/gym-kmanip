@@ -41,15 +41,18 @@ class KManipTask(base.Task):
         if "grip_r" in action:
             # grip action will be [-1, 1], need to undo that here
             grip_r: float = action["grip_r"] * k.EE_S_DELTA
-            grip_r += physics.data.qpos[self.gym_env.ctrl_id_r_grip[0]]
+            # print(f"grip_r delta: {grip_r}")
+            grip_r += physics.data.qpos[self.gym_env.ctrl_id_r_grip[0]].copy()
+            # print(f"grip_r raw: {grip_r}")
             # clip to range
             grip_r = np.clip(grip_r, k.EE_S_MIN, k.EE_S_MAX)
+            # print(f"grip_r clipped: {grip_r}")
             ctrl[self.gym_env.ctrl_id_r_grip[0]] = grip_r
             ctrl[self.gym_env.ctrl_id_r_grip[1]] = grip_r
         if "grip_l" in action:
             # grip action will be [-1, 1], need to undo that here
             grip_l: float = action["grip_l"] * k.EE_S_DELTA
-            grip_l += physics.data.qpos[self.gym_env.ctrl_id_l_grip[0]]
+            grip_l += physics.data.qpos[self.gym_env.ctrl_id_l_grip[0]].copy()
             # clip to range
             grip_l = np.clip(grip_l, k.EE_S_MIN, k.EE_S_MAX)
             ctrl[self.gym_env.ctrl_id_l_grip[0]] = grip_l
@@ -57,7 +60,7 @@ class KManipTask(base.Task):
         if "eer_pos" in action:
             # ee_pos will be normalized to [-1, 1], need to undo that here
             eer_pos: NDArray = action["eer_pos"] * k.EE_POS_DELTA
-            eer_pos += physics.data.site("eer_site_pos").xpos
+            eer_pos += physics.data.site("eer_site_pos").xpos.copy()
             np.copyto(physics.data.mocap_pos[k.MOCAP_ID_R], eer_pos)
             # ee_orn will be [-1, 1] in euler angles, need to add to current orientation
             eer_orn: NDArray = action["eer_orn"] * k.EE_ORN_DELTA
@@ -77,7 +80,7 @@ class KManipTask(base.Task):
         if "eel_pos" in action:
             # pos will be normalized to [-1, 1], need to undo that here
             eel_pos: NDArray = action["eel_pos"] * k.EE_POS_DELTA
-            eel_pos += physics.data.site("eel_site_pos").xpos
+            eel_pos += physics.data.site("eel_site_pos").xpos.copy()
             np.copyto(physics.data.mocap_pos[k.MOCAP_ID_L], eel_pos)
             # orn will be [-1, 1], potentially invalid quaternion, need to normalize
             eel_orn: NDArray = action["eel_orn"] * k.EE_ORN_DELTA
@@ -99,7 +102,9 @@ class KManipTask(base.Task):
         if "q_pos_l" in action:
             ctrl[self.gym_env.q_id_l_mask] = q_pos[self.gym_env.q_id_l_mask] + action["q_pos_l"] * k.Q_POS_DELTA
         # exponential filter for smooth control
-        ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl
+        # print(f"ctrl raw: {ctrl}")
+        ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl.copy()
+        # print(f"ctrl filtered: {ctrl}")
         super().before_step(ctrl, physics)
 
     def get_observation(self, physics) -> dict:

@@ -107,7 +107,7 @@ def ik(
     ee_site: str = None,
 ) -> NDArray:
     start_time = time.time()
-    q_pos: NDArray = physics.data.qpos[q_mask]
+    q_pos: NDArray = physics.data.qpos[q_mask].copy()
     ik_func = partial(
         ik_res,
         physics=physics,
@@ -134,22 +134,22 @@ def ik(
             verbose=0,
         )
         q_pos = result.x
-        # clip to joint velocity limits
-        np.clip(
-            q_pos,
-            q_pos - k.MAX_Q_VEL * k.CONTROL_TIMESTEP,
-            q_pos + k.MAX_Q_VEL * k.CONTROL_TIMESTEP,
-            out=q_pos,
-        )
-        # clip to joint position limits
-        np.clip(
-            q_pos,
-            physics.model.jnt_range[q_mask, 0],
-            physics.model.jnt_range[q_mask, 1],
-            out=q_pos,
-        )
     except ValueError as e:
         print(f"IK failed: {e}")
+    # clip to joint velocity limits
+    np.clip(
+        q_pos,
+        q_pos - k.MAX_Q_VEL * k.CONTROL_TIMESTEP,
+        q_pos + k.MAX_Q_VEL * k.CONTROL_TIMESTEP,
+        out=q_pos,
+    )
+    # clip to joint position limits
+    np.clip(
+        q_pos,
+        physics.model.jnt_range[q_mask, 0],
+        physics.model.jnt_range[q_mask, 1],
+        out=q_pos,
+    )
     total_time = time.time() - start_time
     print(f"IK took {total_time*1000}ms")
     return q_pos

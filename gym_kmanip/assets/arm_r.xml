@@ -51,7 +51,7 @@
         <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="1000"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_x4_3_dof_x4"/>
         <position ctrllimited="true" ctrlrange="-2.61799 0.523599" kp="1000"  user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_x4_1_dof_x4"/>
         <position ctrllimited="true" ctrlrange="-3.14159 3.14159" kp="0" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_x4_2_dof_x4"/>
-        <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="100" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_slider_3"/>
-        <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="100" user="1" forcelimited="true" forcerange="-100 100" joint="joint_right_arm_1_hand_right_1_slider_1"/>
+        <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="200" user="1" joint="joint_right_arm_1_hand_right_1_slider_3"/>
+        <position ctrllimited="true" ctrlrange="-0.029 0.005" kp="200" user="1" joint="joint_right_arm_1_hand_right_1_slider_1"/>
     </actuator>
 </mujocoinclude>
