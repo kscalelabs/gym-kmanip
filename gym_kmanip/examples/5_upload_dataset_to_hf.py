@@ -18,7 +18,7 @@ push_dataset_to_hub(
     Path(k.DATA_DIR), # data_dir
     # Fill in your dataset directory here
     # needs to contain "sim" and the directory should be called "_raw" but don't put that here
-    "sim_test_gym_kmanip", # dataset_id
+    "sim_synth_demo", # dataset_id
     "aloha_hdf5", # raw_format
     "kscalelabs", # community_id
     k.HF_LEROBOT_VERSION, # revision

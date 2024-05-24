@@ -24,7 +24,7 @@ env = gym.make(
 )
 # env.reset()
 
-NUM_EPISODES: int = 100
+NUM_EPISODES: int = 10
 for _ in range(NUM_EPISODES):
     env.reset()
     for _ in range(k.MAX_EPISODE_STEPS):
