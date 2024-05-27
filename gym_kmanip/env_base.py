@@ -263,4 +263,5 @@ class KManipEnv(gym.Env):
             self.log_h5py_funcs["end"](self.hypy_f)
         if self.log_rerun:
             self.log_rerun_funcs["end"]()
+        self.env.k_close()
         super().close()

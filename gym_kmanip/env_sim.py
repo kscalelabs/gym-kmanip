@@ -198,6 +198,9 @@ class KManipEnvSim(control.Environment):
         terminated: bool = ts.step_type == StepType.LAST
         sim_time: float = self._physics.data.time
         return terminated, ts.reward, ts.discount, ts.observation, sim_time
+    
+    def k_close(self):
+        pass
 
 
 def new(gym_env: KManipEnv) -> KManipEnvSim:

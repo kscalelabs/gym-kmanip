@@ -214,6 +214,12 @@ WXYZ_2_XYZW: NDArray = np.array([1, 2, 3, 0])
 MJ_TO_VUER_ROT: R = R.from_euler("z", np.pi) * R.from_euler("x", np.pi / 2)
 VUER_TO_MJ_ROT: R = MJ_TO_VUER_ROT.inv()
 
+# Vuer is used for teleop
+VUER_IMG_QUALITY: int = 20
+
+# real robot uses cv2 for camera capture
+CAMERA_FPS: int = 30
+BGR_TO_RGB: NDArray = np.array([2, 1, 0], dtype=np.uint8)
 
 def mj2vuer_pos(pos: NDArray) -> NDArray:
     return MJ_TO_VUER_ROT.apply(pos)
