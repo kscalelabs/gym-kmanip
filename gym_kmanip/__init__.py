@@ -157,15 +157,15 @@ class Cam:
 CAMERAS: OrderedDict[str, Cam] = ODict()
 CAMERAS["head"] = Cam(640, 480, 3, 448, (320, 240), "head", "camera/head")
 CAMERAS["top"] = Cam(640, 480, 3, 448, (320, 240), "top", "camera/top")
-CAMERAS["grip_r"] = Cam(60, 40, 3, 45, (30, 20), "grip_r", "camera/grip_r")
+CAMERAS["grip_r"] = Cam(640, 480, 3, 448, (30, 20), "grip_r", "camera/grip_r")
 CAMERAS["grip_l"] = Cam(60, 40, 3, 45, (30, 20), "grip_l", "camera/grip_l")
 
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE: NDArray = np.array(
     [
-        [0.1, 0.3],  # X
-        [0.5, 0.7],  # Y
-        [0.6, 0.7],  # Z
+        [0.1, 0.12],  # X
+        [0.5, 0.712],  # Y
+        [0.6, 0.605],  # Z
     ]
 )
 
@@ -242,7 +242,7 @@ def vuer2mj_orn(orn: R) -> NDArray:
 
 
 register(
-    id="KManipSoloArm",
+    id="gym_kmanip/KManipSoloArm",
     entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
@@ -269,7 +269,7 @@ register(
 )
 
 register(
-    id="KManipSoloArmQPos",
+    id="gym_kmanip/KManipSoloArmQPos",
     entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
@@ -295,8 +295,36 @@ register(
 )
 
 
+# register(
+#     id="gym_kmanip/KManipSoloArmVision",
+#     entry_point="gym_kmanip.env_base:KManipEnv",
+#     max_episode_steps=MAX_EPISODE_STEPS,
+#     nondeterministic=True,
+#     kwargs={
+#         "mjcf_filename": SOLO_ARM_MJCF,
+#         "urdf_filename": SOLO_ARM_URDF,
+#         "obs_list": [
+#             "q_pos",  # joint positions
+#             "q_vel",  # joint velocities
+#             "camera/head",  # robot head camera
+#             "camera/grip_r",  # right gripper camera
+#         ],
+#         "act_list": [
+#             "eer_pos",  # right end effector position
+#             "eer_orn",  # right end effector orientation
+#             "grip_r",  # right gripper
+#             # "q_pos",  # joint positions for right arm
+#         ],
+#         "q_pos_home": Q_SOLO_ARM_HOME,
+#         "q_dict": Q_SOLO_ARM_HOME_DICT,
+#         "q_keys": Q_SOLO_ARM_KEYS,
+#         "q_id_r_mask": Q_ID_R_MASK_SOLO,
+#         "ctrl_id_r_grip": CTRL_ID_R_GRIP_SOLO,
+#     },
+# )
+
 register(
-    id="KManipSoloArmVision",
+    id="gym_kmanip/KManipSoloArmVision",
     entry_point="gym_kmanip.env_base:KManipEnv",
     max_episode_steps=MAX_EPISODE_STEPS,
     nondeterministic=True,
@@ -304,12 +332,14 @@ register(
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
         "obs_list": [
+            # without qpos formatting won't work
             "q_pos",  # joint positions
             "q_vel",  # joint velocities
             "camera/head",  # robot head camera
             "camera/grip_r",  # right gripper camera
         ],
         "act_list": [
+            "q_pos",  # joint positions for right arm
             "eer_pos",  # right end effector position
             "eer_orn",  # right end effector orientation
             "grip_r",  # right gripper
@@ -319,165 +349,5 @@ register(
         "q_keys": Q_SOLO_ARM_KEYS,
         "q_id_r_mask": Q_ID_R_MASK_SOLO,
         "ctrl_id_r_grip": CTRL_ID_R_GRIP_SOLO,
-    },
-)
-
-register(
-    id="KManipDualArm",
-    entry_point="gym_kmanip.env_base:KManipEnv",
-    max_episode_steps=MAX_EPISODE_STEPS,
-    nondeterministic=True,
-    kwargs={
-        "mjcf_filename": DUAL_ARM_MJCF,
-        "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
-        "q_pos_home": Q_DUAL_ARM_HOME,
-        "q_dict": Q_DUAL_ARM_HOME_DICT,
-        "q_keys": Q_DUAL_ARM_KEYS,
-        "q_id_r_mask": Q_ID_R_MASK_DUAL,
-        "q_id_l_mask": Q_ID_L_MASK_DUAL,
-        "ctrl_id_r_grip": CTRL_ID_R_GRIP_DUAL,
-        "ctrl_id_l_grip": CTRL_ID_L_GRIP_DUAL,
-    },
-)
-
-register(
-    id="KManipDualArmQPos",
-    entry_point="gym_kmanip.env_base:KManipEnv",
-    max_episode_steps=MAX_EPISODE_STEPS,
-    nondeterministic=True,
-    kwargs={
-        "mjcf_filename": DUAL_ARM_MJCF,
-        "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "q_pos_r",  # joint positions for right arm
-            "q_pos_l",  # joint positions for left arm
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
-        "q_pos_home": Q_DUAL_ARM_HOME,
-        "q_dict": Q_DUAL_ARM_HOME_DICT,
-        "q_keys": Q_DUAL_ARM_KEYS,
-        "q_id_r_mask": Q_ID_R_MASK_DUAL,
-        "q_id_l_mask": Q_ID_L_MASK_DUAL,
-        "ctrl_id_r_grip": CTRL_ID_R_GRIP_DUAL,
-        "ctrl_id_l_grip": CTRL_ID_L_GRIP_DUAL,
-    },
-)
-
-register(
-    id="KManipDualArmVision",
-    entry_point="gym_kmanip.env_base:KManipEnv",
-    max_episode_steps=MAX_EPISODE_STEPS,
-    nondeterministic=True,
-    kwargs={
-        "mjcf_filename": DUAL_ARM_MJCF,
-        "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
-        "q_pos_home": Q_DUAL_ARM_HOME,
-        "q_dict": Q_DUAL_ARM_HOME_DICT,
-        "q_keys": Q_DUAL_ARM_KEYS,
-        "q_id_r_mask": Q_ID_R_MASK_DUAL,
-        "q_id_l_mask": Q_ID_L_MASK_DUAL,
-        "ctrl_id_r_grip": CTRL_ID_R_GRIP_DUAL,
-        "ctrl_id_l_grip": CTRL_ID_L_GRIP_DUAL,
-    },
-)
-
-register(
-    id="KManipTorso",
-    entry_point="gym_kmanip.env_base:KManipEnv",
-    max_episode_steps=MAX_EPISODE_STEPS,
-    nondeterministic=True,
-    kwargs={
-        "mjcf_filename": TORSO_MJCF,
-        "urdf_filename": TORSO_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
-        "q_pos_home": Q_TORSO_HOME,
-        "q_dict": Q_TORSO_HOME_DICT,
-        "q_keys": Q_TORSO_KEYS,
-        "q_id_r_mask": Q_ID_R_MASK_TORSO,
-        "q_id_l_mask": Q_ID_L_MASK_TORSO,
-        "ctrl_id_r_grip": CTRL_ID_R_GRIP_TORSO,
-        "ctrl_id_l_grip": CTRL_ID_L_GRIP_TORSO,
-    },
-)
-
-register(
-    id="KManipTorsoVision",
-    entry_point="gym_kmanip.env_base:KManipEnv",
-    max_episode_steps=MAX_EPISODE_STEPS,
-    nondeterministic=True,
-    kwargs={
-        "mjcf_filename": TORSO_MJCF,
-        "urdf_filename": TORSO_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
-        "q_pos_home": Q_TORSO_HOME,
-        "q_dict": Q_TORSO_HOME_DICT,
-        "q_keys": Q_TORSO_KEYS,
-        "q_id_r_mask": Q_ID_R_MASK_TORSO,
-        "q_id_l_mask": Q_ID_L_MASK_TORSO,
-        "ctrl_id_r_grip": CTRL_ID_R_GRIP_TORSO,
-        "ctrl_id_l_grip": CTRL_ID_L_GRIP_TORSO,
     },
 )
