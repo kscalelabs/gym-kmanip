@@ -105,6 +105,8 @@ class KManipTask(base.Task):
         # print(f"ctrl raw: {ctrl}")
         ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl.copy()
         # print(f"ctrl filtered: {ctrl}")
+        # pfb30
+        ctrl[:action.shape[0]] = action
         super().before_step(ctrl, physics)
 
     def get_observation(self, physics) -> dict:
