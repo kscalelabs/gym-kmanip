@@ -105,6 +105,10 @@ class KManipTask(base.Task):
         # print(f"ctrl raw: {ctrl}")
         ctrl = k.CTRL_ALPHA * ctrl + (1 - k.CTRL_ALPHA) * physics.data.ctrl.copy()
         # print(f"ctrl filtered: {ctrl}")
+        # pfb30 - actual change
+        # physics.data.qpos[self.gym_env.q_id_r_mask] = action[self.gym_env.q_id_r_mask] 
+        ctrl[:] = action
+        print(ctrl)
         super().before_step(ctrl, physics)
 
     def get_observation(self, physics) -> dict:
@@ -127,6 +131,8 @@ class KManipTask(base.Task):
             # clip to [-1, 1]
             q_vel = np.clip(q_vel, -1, 1)
             obs["q_vel"] = q_vel[: self.gym_env.q_len]
+            # pfb30 
+            obs["q_vel"] = physics.data.ctrl
         if "cube_pos" in self.gym_env.obs_list:
             cube_pos: NDArray = physics.data.qpos[-7:-4].copy()
             # normalize cube pos to spawn range

@@ -53,7 +53,8 @@ def step(
     info: Dict[str, Any],
 ) -> None:
     id: int = info["step"] - 1
-    f["action"][id] = action["grip_r"]
+    # pfb30 - what do we save as a action
+    f["action"][id] = observation["q_vel"]
     f["observations/qpos"][id] = observation["q_pos"]
     f["observations/qvel"][id] = observation["q_vel"]
     for cam in info["cameras"]:
