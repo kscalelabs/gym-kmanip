@@ -187,15 +187,16 @@ class KManipEnv(gym.Env):
                 dtype=k.ACT_DTYPE,
             )
         self.action_space = spaces.Dict(_action_dict)
-        # self.action_len: int = len(self.action_space.spaces)
-        # pfb30
+        self.action_len: int = len(self.action_space.spaces)
+
+        # # pfb30 - actual change
+        self.action_len: int = 10 #len(self.q_id_r_mask)
         self.action_space = spaces.Box(
                 low=-1,
                 high=1,
-                shape=(len(self.q_id_r_mask),),
+                shape=(10,),
                 dtype=k.ACT_DTYPE,
         )
-        self.action_len: int = len(self.q_id_r_mask)
 
         # create either a sim or real environment
         self.sim: bool = sim
