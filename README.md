@@ -44,6 +44,8 @@ conda create -y -n gym-kmanip python=3.10 && conda activate gym-kmanip
 pip install -e .
 ```
 
+There are some asset files that are not yet in source control. Download the zip file `https://drive.google.com/file/d/1PNsBaPHwvQuqndZD64N8q6U9eNiU-uiM/view?usp=sharing` and extract the contents to 'gym_kmanip/assets' folder relative to the root of repository (which should also be a folder named gym_kmanip)
+
 run tests to verify installation
 
 ```bash
