@@ -11,6 +11,9 @@ import numpy as np
 from numpy.typing import NDArray
 
 import gym_kmanip as k
+from gym_kmanip.log_base import LogBase
+from gym_kmanip.log_h5py import LogH5py
+from gym_kmanip.log_rerun import LogRerun
 
 
 class KManipEnv(gym.Env):
@@ -73,25 +76,13 @@ class KManipEnv(gym.Env):
             self.log_dir = os.path.join(k.DATA_DIR, _log_dir_name)
             os.makedirs(self.log_dir, exist_ok=True)
             print(f"Creating log dir at {self.log_dir}")
+
+        self.loggers: List[LogBase] = []
         if log_h5py:
-            from gym_kmanip.log_h5py import new, cam, step, end, h5py
-
-            self.log_h5py_funcs: Dict[str, Callable] = {
-                "new": new,
-                "cam": cam,
-                "step": step,
-                "end": end,
-            }
-            self.hypy_f: h5py.File = None
+            self.loggers.append(LogH5py(self.log_dir))
         if log_rerun:
-            from gym_kmanip.log_rerun import new, cam, step, end
+            self.loggers.append(LogRerun(self.log_dir))
 
-            self.log_rerun_funcs: Dict[str, Callable] = {
-                "new": new,
-                "cam": cam,
-                "step": step,
-                "end": end,
-            }
         # robot descriptions
         self.mjcf_filename: str = mjcf_filename
         self.urdf_filename: str = urdf_filename
@@ -227,14 +218,10 @@ class KManipEnv(gym.Env):
         self.info["reward"] = reward
         self.info["is_success"] = False
         self.info["terminated"] = terminated
-        if self.log_h5py:
-            self.hypy_f = self.log_h5py_funcs["new"](self.log_dir, self.info)
+        for logger in self.loggers:
+            logger.start(self.info)
             for cam in self.cameras:
-                self.log_h5py_funcs["cam"](self.hypy_f, cam)
-        if self.log_rerun:
-            self.log_rerun_funcs["new"](self.log_dir, self.info)
-            for cam in self.cameras:
-                self.log_rerun_funcs["cam"](cam)
+                logger.initialize_cam(cam)
         return observation, self.info
 
     def step(self, action):
@@ -247,20 +234,14 @@ class KManipEnv(gym.Env):
         self.info["reward"] = reward
         self.info["is_success"] = reward > k.REWARD_SUCCESS_THRESHOLD
         self.info["terminated"] = terminated
-        if self.log_rerun:
+        for logger in self.loggers:
             start_time = time.time()
-            self.log_rerun_funcs["step"](action, observation, self.info)
-            print(f"logging w/ rerun took {(time.time() - start_time) * 1000:.2f}ms")
-        if self.log_h5py:
-            start_time = time.time()
-            self.log_h5py_funcs["step"](self.hypy_f, action, observation, self.info)
-            print(f"logging w/ h5py took {(time.time() - start_time) * 1000:.2f}ms")
+            logger.step(action, observation, self.info)
+            print(f"logging w/ {logger.log_type} took {(time.time() - start_time) * 1000:.2f}ms")
         return observation, reward, terminated, False, self.info
 
     def close(self):
-        if self.log_h5py:
-            self.log_h5py_funcs["end"](self.hypy_f)
-        if self.log_rerun:
-            self.log_rerun_funcs["end"]()
+        for logger in self.loggers:
+            logger.close()
         self.env.k_close()
         super().close()
