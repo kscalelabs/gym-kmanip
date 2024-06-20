@@ -20,16 +20,8 @@ class KManipEnv(gym.Env):
         self,
         seed: int = 0,
         render_mode: str = "rgb_array",
-        obs_list: List[str] = [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-            "camera/top",  # overhead camera
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
+        obs_type = k.ObservationType.state,
+        cam_list: List[str] = [],
         act_list: List[str] = [
             "eel_pos",  # left end effector position
             "eel_orn",  # left end effector orientation
@@ -74,10 +66,9 @@ class KManipEnv(gym.Env):
         self.ctrl_id_l_grip: NDArray = ctrl_id_l_grip
         # camera properties
         self.cameras: List[k.Cam] = []
-        for obs_name in obs_list:
-            if "camera" in obs_name:
-                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
-                self.cameras.append(cam)
+        for cam_name in cam_list:
+            cam: k.Cam = k.CAMERAS[cam_name]
+            self.cameras.append(cam)
         # optionally log using rerun (viz/debug) or h5py (data)
         self.log_rerun: bool = log_rerun
         self.log_h5py: bool = log_h5py
@@ -112,39 +103,8 @@ class KManipEnv(gym.Env):
         # robot descriptions
         self.mjcf_filename: str = mjcf_filename
         self.urdf_filename: str = urdf_filename
-        # observation space
-        self.obs_list = obs_list
-        _obs_dict: OrderedDict[str, spaces.Space] = ODict()
-        if "q_pos" in obs_list:
-            _obs_dict["q_pos"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(self.q_len,),
-                dtype=k.OBS_DTYPE,
-            )
-        if "q_vel" in obs_list:
-            _obs_dict["q_vel"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(self.q_len,),
-                dtype=k.OBS_DTYPE,
-            )
-        if "cube_pos" in obs_list:
-            _obs_dict["cube_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.OBS_DTYPE
-            )
-        if "cube_orn" in obs_list:
-            _obs_dict["cube_orn"] = spaces.Box(
-                low=-1, high=1, shape=(4,), dtype=k.OBS_DTYPE
-            )
-        for cam in self.cameras:
-            _obs_dict[cam.log_name] = spaces.Box(
-                low=cam.low,
-                high=cam.high,
-                shape=(cam.h, cam.w, 3),
-                dtype=cam.dtype,
-            )
-        self.observation_space = spaces.Dict(_obs_dict)
+
+        self._build_observation_space(obs_type)
         # action space
         self.act_list = act_list
         _action_dict: OrderedDict[str, spaces.Space] = ODict()
@@ -211,6 +171,42 @@ class KManipEnv(gym.Env):
             "cameras": self.cameras,
             "sim": self.sim,
         }
+
+    def _build_observation_space(self, obs_type: k.ObservationType):
+        _obs_dict: OrderedDict[str, spaces.Space] = ODict()
+        self.obs_list = ["q_pos", "q_vel"]
+        _obs_dict["q_pos"] = spaces.Box(
+            low=-1,
+            high=1,
+            shape=(self.q_len,),
+            dtype=k.OBS_DTYPE,
+        )
+        _obs_dict["q_vel"] = spaces.Box(
+            low=-1,
+            high=1,
+            shape=(self.q_len,),
+            dtype=k.OBS_DTYPE,
+        )
+
+        if k.ObservationType.state in obs_type:
+            self.obs_list.extend(["cube_pos", "cube_orn"])
+            _obs_dict["cube_pos"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.OBS_DTYPE
+            )
+            _obs_dict["cube_orn"] = spaces.Box(
+                low=-1, high=1, shape=(4,), dtype=k.OBS_DTYPE
+            )
+
+        if k.ObservationType.image in obs_type:
+            for cam in self.cameras:
+                self.obs_list.append(cam.log_name) # TODO: We probably don't need this!
+                _obs_dict[cam.log_name] = spaces.Box(
+                    low=cam.low,
+                    high=cam.high,
+                    shape=(cam.h, cam.w, 3),
+                    dtype=cam.dtype,
+                )
+        self.observation_space = spaces.Dict(_obs_dict)
 
     def render(self):
         # TODO: when is this actually used?

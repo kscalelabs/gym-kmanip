@@ -1,5 +1,6 @@
 from collections import OrderedDict as ODict
 from dataclasses import dataclass
+from enum import Enum, Flag, auto
 import os
 from typing import List, OrderedDict, Tuple
 
@@ -240,6 +241,10 @@ def vuer2mj_orn(orn: R) -> NDArray:
     rot = orn * VUER_TO_MJ_ROT
     return rot.as_quat()[WXYZ_2_XYZW]
 
+class ObservationType(Flag):
+    state = auto()
+    image = auto()
+
 
 register(
     id="KManipSoloArm",
@@ -249,12 +254,7 @@ register(
     kwargs={
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
+        "obs_type": ObservationType.state,
         "act_list": [
             "eer_pos",  # right end effector position
             "eer_orn",  # right end effector orientation
@@ -276,12 +276,7 @@ register(
     kwargs={
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
+        "obs_type": ObservationType.state,
         "act_list": [
             "q_pos_r",  # joint positions for right arm
             "grip_r",  # right gripper
@@ -303,12 +298,8 @@ register(
     kwargs={
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_r",  # right gripper camera
-        ],
+        "obs_type": ObservationType.image,
+        "cam_list": ["head", "grip_r"],
         "act_list": [
             "eer_pos",  # right end effector position
             "eer_orn",  # right end effector orientation
@@ -330,12 +321,7 @@ register(
     kwargs={
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
+        "obs_type": ObservationType.state,
         "act_list": [
             "eel_pos",  # left end effector position
             "eel_orn",  # left end effector orientation
@@ -362,12 +348,7 @@ register(
     kwargs={
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
+        "obs_type": ObservationType.state,
         "act_list": [
             "q_pos_r",  # joint positions for right arm
             "q_pos_l",  # joint positions for left arm
@@ -392,13 +373,8 @@ register(
     kwargs={
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
+        "obs_type": ObservationType.image,
+        "cam_list": ["head", "grip_l", "grip_r"],
         "act_list": [
             "eel_pos",  # left end effector position
             "eel_orn",  # left end effector orientation
@@ -425,12 +401,7 @@ register(
     kwargs={
         "mjcf_filename": TORSO_MJCF,
         "urdf_filename": TORSO_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
+        "obs_type": ObservationType.state,
         "act_list": [
             "eel_pos",  # left end effector position
             "eel_orn",  # left end effector orientation
@@ -457,13 +428,8 @@ register(
     kwargs={
         "mjcf_filename": TORSO_MJCF,
         "urdf_filename": TORSO_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
+        "obs_type": ObservationType.image,
+        "cam_list": ["head", "grip_l", "grip_r"],
         "act_list": [
             "eel_pos",  # left end effector position
             "eel_orn",  # left end effector orientation
