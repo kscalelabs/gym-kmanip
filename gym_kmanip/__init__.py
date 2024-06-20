@@ -245,6 +245,12 @@ class ObservationType(Flag):
     state = auto()
     image = auto()
 
+class ControlType(Flag):
+    end_effector_left = auto()
+    end_effector_right = auto()
+    joints_right = auto()
+    joints_left = auto()
+
 
 register(
     id="KManipSoloArm",
@@ -255,11 +261,7 @@ register(
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
         "obs_type": ObservationType.state,
-        "act_list": [
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.end_effector_right,
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
@@ -277,10 +279,7 @@ register(
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
         "obs_type": ObservationType.state,
-        "act_list": [
-            "q_pos_r",  # joint positions for right arm
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.joints_right,
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
@@ -300,11 +299,7 @@ register(
         "urdf_filename": SOLO_ARM_URDF,
         "obs_type": ObservationType.image,
         "cam_list": ["head", "grip_r"],
-        "act_list": [
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.end_effector_right,
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
@@ -322,14 +317,7 @@ register(
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
         "obs_type": ObservationType.state,
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
@@ -349,12 +337,7 @@ register(
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
         "obs_type": ObservationType.state,
-        "act_list": [
-            "q_pos_r",  # joint positions for right arm
-            "q_pos_l",  # joint positions for left arm
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.joints_right | ControlType.joints_left,
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
@@ -375,14 +358,7 @@ register(
         "urdf_filename": DUAL_ARM_URDF,
         "obs_type": ObservationType.image,
         "cam_list": ["head", "grip_l", "grip_r"],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
@@ -402,14 +378,7 @@ register(
         "mjcf_filename": TORSO_MJCF,
         "urdf_filename": TORSO_URDF,
         "obs_type": ObservationType.state,
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_TORSO_HOME,
         "q_dict": Q_TORSO_HOME_DICT,
         "q_keys": Q_TORSO_KEYS,
@@ -430,14 +399,7 @@ register(
         "urdf_filename": TORSO_URDF,
         "obs_type": ObservationType.image,
         "cam_list": ["head", "grip_l", "grip_r"],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_TORSO_HOME,
         "q_dict": Q_TORSO_HOME_DICT,
         "q_keys": Q_TORSO_KEYS,

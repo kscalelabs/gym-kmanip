@@ -20,17 +20,9 @@ class KManipEnv(gym.Env):
         self,
         seed: int = 0,
         render_mode: str = "rgb_array",
-        obs_type = k.ObservationType.state,
+        obs_type: k.ObservationType = k.ObservationType.state,
         cam_list: List[str] = [],
-        act_list: List[str] = [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-            "q_pos",  # joint positions
-        ],
+        control_type: k.ControlType = None,
         sim: bool = True,
         mjcf_filename: str = k.SOLO_ARM_MJCF,
         urdf_filename: str = k.SOLO_ARM_URDF,
@@ -105,49 +97,7 @@ class KManipEnv(gym.Env):
         self.urdf_filename: str = urdf_filename
 
         self._build_observation_space(obs_type)
-        # action space
-        self.act_list = act_list
-        _action_dict: OrderedDict[str, spaces.Space] = ODict()
-        if "eel_pos" in act_list:
-            _action_dict["eel_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "eel_orn" in act_list:
-            _action_dict["eel_orn"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "eer_pos" in act_list:
-            _action_dict["eer_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "eer_orn" in act_list:
-            _action_dict["eer_orn"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "grip_l" in act_list:
-            _action_dict["grip_l"] = spaces.Box(
-                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
-            )
-        if "grip_r" in act_list:
-            _action_dict["grip_r"] = spaces.Box(
-                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
-            )
-        if "q_pos_r" in act_list:
-            _action_dict["q_pos_r"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(len(self.q_id_r_mask),),
-                dtype=k.ACT_DTYPE,
-            )
-        if "q_pos_l" in act_list:
-            _action_dict["q_pos_l"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(len(self.q_id_l_mask),),
-                dtype=k.ACT_DTYPE,
-            )
-        self.action_space = spaces.Dict(_action_dict)
-        self.action_len: int = len(self.action_space.spaces)
+        self._build_action_space(control_type)
         # create either a sim or real environment
         self.sim: bool = sim
         if self.sim:
@@ -207,6 +157,59 @@ class KManipEnv(gym.Env):
                     dtype=cam.dtype,
                 )
         self.observation_space = spaces.Dict(_obs_dict)
+
+    def _build_action_space(self, control_type: k.ControlType):
+        self.act_list = []
+        if k.ControlType.end_effector_right in control_type:
+            self.act_list.extend(["eer_pos", "eer_orn", "grip_r"])
+        if k.ControlType.end_effector_left in control_type:
+            self.act_list.extend(["eel_pos", "eel_orn", "grip_l"])
+        if k.ControlType.joints_right in control_type:
+            self.act_list.extend(["q_pos_r", "grip_r"])
+        if k.ControlType.joints_left in control_type:
+            self.act_list.extend(["q_pos_l", "grip_l"])
+
+        _action_dict: OrderedDict[str, spaces.Space] = ODict()
+        if "eel_pos" in self.act_list:
+            _action_dict["eel_pos"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "eel_orn" in self.act_list:
+            _action_dict["eel_orn"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "eer_pos" in self.act_list:
+            _action_dict["eer_pos"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "eer_orn" in self.act_list:
+            _action_dict["eer_orn"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "grip_l" in self.act_list:
+            _action_dict["grip_l"] = spaces.Box(
+                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
+            )
+        if "grip_r" in self.act_list:
+            _action_dict["grip_r"] = spaces.Box(
+                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
+            )
+        if "q_pos_r" in self.act_list:
+            _action_dict["q_pos_r"] = spaces.Box(
+                low=-1,
+                high=1,
+                shape=(len(self.q_id_r_mask),),
+                dtype=k.ACT_DTYPE,
+            )
+        if "q_pos_l" in self.act_list:
+            _action_dict["q_pos_l"] = spaces.Box(
+                low=-1,
+                high=1,
+                shape=(len(self.q_id_l_mask),),
+                dtype=k.ACT_DTYPE,
+            )
+        self.action_space = spaces.Dict(_action_dict)
+        self.action_len: int = len(self.action_space.spaces)
 
     def render(self):
         # TODO: when is this actually used?
