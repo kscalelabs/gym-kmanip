@@ -11,6 +11,9 @@ import numpy as np
 from numpy.typing import NDArray
 
 import gym_kmanip as k
+from gym_kmanip.log_base import LogBase
+from gym_kmanip.log_h5py import LogH5py
+from gym_kmanip.log_rerun import LogRerun
 
 
 class KManipEnv(gym.Env):
@@ -20,25 +23,9 @@ class KManipEnv(gym.Env):
         self,
         seed: int = 0,
         render_mode: str = "rgb_array",
-        obs_list: List[str] = [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-            "camera/top",  # overhead camera
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
-        act_list: List[str] = [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-            "q_pos",  # joint positions
-        ],
+        obs_type: k.ObservationType = k.ObservationType.state,
+        cam_type: k.CameraType = None,
+        control_type: k.ControlType = None,
         sim: bool = True,
         mjcf_filename: str = k.SOLO_ARM_MJCF,
         urdf_filename: str = k.SOLO_ARM_URDF,
@@ -74,13 +61,16 @@ class KManipEnv(gym.Env):
         self.ctrl_id_l_grip: NDArray = ctrl_id_l_grip
         # camera properties
         self.cameras: List[k.Cam] = []
-        for obs_name in obs_list:
-            if "camera" in obs_name:
-                cam: k.Cam = k.CAMERAS[obs_name.split("/")[-1]]
-                self.cameras.append(cam)
+        if cam_type:
+            # In python 3.12, I should be able to iterate the members of current instance (as in the first commented line).
+            # But that doesn't work in 3.10. So I have to enumerate all possible camera 
+            # values and check for their presence in the cam_type flag.
+            # for cam_flag in list(cam_type):
+            for cam_flag in k.CameraType:
+                if cam_flag in cam_type:
+                    cam: k.Cam = k.CAMERAS[cam_flag]
+                    self.cameras.append(cam)
         # optionally log using rerun (viz/debug) or h5py (data)
-        self.log_rerun: bool = log_rerun
-        self.log_h5py: bool = log_h5py
         if log_h5py or log_rerun:
             _log_dir_name: str = "{}.{}.{}".format(
                 log_prefix,
@@ -90,104 +80,19 @@ class KManipEnv(gym.Env):
             self.log_dir = os.path.join(k.DATA_DIR, _log_dir_name)
             os.makedirs(self.log_dir, exist_ok=True)
             print(f"Creating log dir at {self.log_dir}")
+
+        self.loggers: List[LogBase] = []
         if log_h5py:
-            from gym_kmanip.log_h5py import new, cam, step, end, h5py
-
-            self.log_h5py_funcs: Dict[str, Callable] = {
-                "new": new,
-                "cam": cam,
-                "step": step,
-                "end": end,
-            }
-            self.hypy_f: h5py.File = None
+            self.loggers.append(LogH5py(self.log_dir))
         if log_rerun:
-            from gym_kmanip.log_rerun import new, cam, step, end
+            self.loggers.append(LogRerun(self.log_dir))
 
-            self.log_rerun_funcs: Dict[str, Callable] = {
-                "new": new,
-                "cam": cam,
-                "step": step,
-                "end": end,
-            }
         # robot descriptions
         self.mjcf_filename: str = mjcf_filename
         self.urdf_filename: str = urdf_filename
-        # observation space
-        self.obs_list = obs_list
-        _obs_dict: OrderedDict[str, spaces.Space] = ODict()
-        if "q_pos" in obs_list:
-            _obs_dict["q_pos"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(self.q_len,),
-                dtype=k.OBS_DTYPE,
-            )
-        if "q_vel" in obs_list:
-            _obs_dict["q_vel"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(self.q_len,),
-                dtype=k.OBS_DTYPE,
-            )
-        if "cube_pos" in obs_list:
-            _obs_dict["cube_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.OBS_DTYPE
-            )
-        if "cube_orn" in obs_list:
-            _obs_dict["cube_orn"] = spaces.Box(
-                low=-1, high=1, shape=(4,), dtype=k.OBS_DTYPE
-            )
-        for cam in self.cameras:
-            _obs_dict[cam.log_name] = spaces.Box(
-                low=cam.low,
-                high=cam.high,
-                shape=(cam.h, cam.w, 3),
-                dtype=cam.dtype,
-            )
-        self.observation_space = spaces.Dict(_obs_dict)
-        # action space
-        self.act_list = act_list
-        _action_dict: OrderedDict[str, spaces.Space] = ODict()
-        if "eel_pos" in act_list:
-            _action_dict["eel_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "eel_orn" in act_list:
-            _action_dict["eel_orn"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "eer_pos" in act_list:
-            _action_dict["eer_pos"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "eer_orn" in act_list:
-            _action_dict["eer_orn"] = spaces.Box(
-                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
-            )
-        if "grip_l" in act_list:
-            _action_dict["grip_l"] = spaces.Box(
-                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
-            )
-        if "grip_r" in act_list:
-            _action_dict["grip_r"] = spaces.Box(
-                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
-            )
-        if "q_pos_r" in act_list:
-            _action_dict["q_pos_r"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(len(self.q_id_r_mask),),
-                dtype=k.ACT_DTYPE,
-            )
-        if "q_pos_l" in act_list:
-            _action_dict["q_pos_l"] = spaces.Box(
-                low=-1,
-                high=1,
-                shape=(len(self.q_id_l_mask),),
-                dtype=k.ACT_DTYPE,
-            )
-        self.action_space = spaces.Dict(_action_dict)
-        self.action_len: int = len(self.action_space.spaces)
+
+        self._build_observation_space(obs_type)
+        self._build_action_space(control_type)
         # create either a sim or real environment
         self.sim: bool = sim
         if self.sim:
@@ -212,9 +117,98 @@ class KManipEnv(gym.Env):
             "sim": self.sim,
         }
 
+    def _build_observation_space(self, obs_type: k.ObservationType):
+        _obs_dict: OrderedDict[str, spaces.Space] = ODict()
+        self.obs_list = ["q_pos", "q_vel"]
+        _obs_dict["q_pos"] = spaces.Box(
+            low=-1,
+            high=1,
+            shape=(self.q_len,),
+            dtype=k.OBS_DTYPE,
+        )
+        _obs_dict["q_vel"] = spaces.Box(
+            low=-1,
+            high=1,
+            shape=(self.q_len,),
+            dtype=k.OBS_DTYPE,
+        )
+
+        if k.ObservationType.state in obs_type:
+            self.obs_list.extend(["cube_pos", "cube_orn"])
+            _obs_dict["cube_pos"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.OBS_DTYPE
+            )
+            _obs_dict["cube_orn"] = spaces.Box(
+                low=-1, high=1, shape=(4,), dtype=k.OBS_DTYPE
+            )
+
+        if k.ObservationType.image in obs_type:
+            for cam in self.cameras:
+                self.obs_list.append(cam.log_name) # TODO: We probably don't need this!
+                _obs_dict[cam.log_name] = spaces.Box(
+                    low=cam.low,
+                    high=cam.high,
+                    shape=(cam.h, cam.w, 3),
+                    dtype=cam.dtype,
+                )
+        self.observation_space = spaces.Dict(_obs_dict)
+
+    def _build_action_space(self, control_type: k.ControlType):
+        self.act_list = []
+        if k.ControlType.end_effector_right in control_type:
+            self.act_list.extend(["eer_pos", "eer_orn", "grip_r"])
+        if k.ControlType.end_effector_left in control_type:
+            self.act_list.extend(["eel_pos", "eel_orn", "grip_l"])
+        if k.ControlType.joints_right in control_type:
+            self.act_list.extend(["q_pos_r", "grip_r"])
+        if k.ControlType.joints_left in control_type:
+            self.act_list.extend(["q_pos_l", "grip_l"])
+
+        _action_dict: OrderedDict[str, spaces.Space] = ODict()
+        if "eel_pos" in self.act_list:
+            _action_dict["eel_pos"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "eel_orn" in self.act_list:
+            _action_dict["eel_orn"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "eer_pos" in self.act_list:
+            _action_dict["eer_pos"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "eer_orn" in self.act_list:
+            _action_dict["eer_orn"] = spaces.Box(
+                low=-1, high=1, shape=(3,), dtype=k.ACT_DTYPE
+            )
+        if "grip_l" in self.act_list:
+            _action_dict["grip_l"] = spaces.Box(
+                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
+            )
+        if "grip_r" in self.act_list:
+            _action_dict["grip_r"] = spaces.Box(
+                low=-1, high=1, shape=(1,), dtype=k.ACT_DTYPE
+            )
+        if "q_pos_r" in self.act_list:
+            _action_dict["q_pos_r"] = spaces.Box(
+                low=-1,
+                high=1,
+                shape=(len(self.q_id_r_mask),),
+                dtype=k.ACT_DTYPE,
+            )
+        if "q_pos_l" in self.act_list:
+            _action_dict["q_pos_l"] = spaces.Box(
+                low=-1,
+                high=1,
+                shape=(len(self.q_id_l_mask),),
+                dtype=k.ACT_DTYPE,
+            )
+        self.action_space = spaces.Dict(_action_dict)
+        self.action_len: int = len(self.action_space.spaces)
+
     def render(self):
         # TODO: when is this actually used?
-        return self.env.k_render(k.CAMERAS["top"])
+        return self.env.k_render(k.CAMERAS[k.CameraType.top])
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -228,14 +222,10 @@ class KManipEnv(gym.Env):
         self.info["reward"] = reward
         self.info["is_success"] = False
         self.info["terminated"] = terminated
-        if self.log_h5py:
-            self.hypy_f = self.log_h5py_funcs["new"](self.log_dir, self.info)
+        for logger in self.loggers:
+            logger.reset(self.info)
             for cam in self.cameras:
-                self.log_h5py_funcs["cam"](self.hypy_f, cam)
-        if self.log_rerun:
-            self.log_rerun_funcs["new"](self.log_dir, self.info)
-            for cam in self.cameras:
-                self.log_rerun_funcs["cam"](cam)
+                logger.reset_cam(cam)
         return observation, self.info
 
     def step(self, action):
@@ -248,20 +238,14 @@ class KManipEnv(gym.Env):
         self.info["reward"] = reward
         self.info["is_success"] = reward > k.REWARD_SUCCESS_THRESHOLD
         self.info["terminated"] = terminated
-        if self.log_rerun:
+        for logger in self.loggers:
             start_time = time.time()
-            self.log_rerun_funcs["step"](action, observation, self.info)
-            print(f"logging w/ rerun took {(time.time() - start_time) * 1000:.2f}ms")
-        if self.log_h5py:
-            start_time = time.time()
-            self.log_h5py_funcs["step"](self.hypy_f, action, observation, self.info)
-            print(f"logging w/ h5py took {(time.time() - start_time) * 1000:.2f}ms")
+            logger.step(action, observation, self.info)
+            print(f"logging w/ {logger.log_type} took {(time.time() - start_time) * 1000:.2f}ms")
         return observation, reward, terminated, False, self.info
 
     def close(self):
-        if self.log_h5py:
-            self.log_h5py_funcs["end"](self.hypy_f)
-        if self.log_rerun:
-            self.log_rerun_funcs["end"]()
+        for logger in self.loggers:
+            logger.close()
         self.env.k_close()
         super().close()

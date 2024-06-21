@@ -1,5 +1,6 @@
 from collections import OrderedDict as ODict
 from dataclasses import dataclass
+from enum import Flag, auto
 import os
 from typing import List, OrderedDict, Tuple
 
@@ -153,12 +154,28 @@ class Cam:
     high: int = 255
     dtype = np.uint8
 
+class ObservationType(Flag):
+    state = auto()
+    image = auto()
 
-CAMERAS: OrderedDict[str, Cam] = ODict()
-CAMERAS["head"] = Cam(640, 480, 3, 448, (320, 240), "head", "camera/head")
-CAMERAS["top"] = Cam(640, 480, 3, 448, (320, 240), "top", "camera/top")
-CAMERAS["grip_r"] = Cam(60, 40, 3, 45, (30, 20), "grip_r", "camera/grip_r")
-CAMERAS["grip_l"] = Cam(60, 40, 3, 45, (30, 20), "grip_l", "camera/grip_l")
+class ControlType(Flag):
+    end_effector_left = auto()
+    end_effector_right = auto()
+    joints_right = auto()
+    joints_left = auto()
+
+class CameraType(Flag):
+    head = auto()
+    top = auto()
+    grip_r = auto()
+    grip_l = auto()
+
+
+CAMERAS: OrderedDict[CameraType, Cam] = ODict()
+CAMERAS[CameraType.head] = Cam(640, 480, 3, 448, (320, 240), "head", "camera/head")
+CAMERAS[CameraType.top] = Cam(640, 480, 3, 448, (320, 240), "top", "camera/top")
+CAMERAS[CameraType.grip_r] = Cam(60, 40, 3, 45, (30, 20), "grip_r", "camera/grip_r")
+CAMERAS[CameraType.grip_l] = Cam(60, 40, 3, 45, (30, 20), "grip_l", "camera/grip_l")
 
 # cube is randomly spawned on episode start
 CUBE_SPAWN_RANGE: NDArray = np.array(
@@ -240,7 +257,6 @@ def vuer2mj_orn(orn: R) -> NDArray:
     rot = orn * VUER_TO_MJ_ROT
     return rot.as_quat()[WXYZ_2_XYZW]
 
-
 register(
     id="KManipSoloArm",
     entry_point="gym_kmanip.env_base:KManipEnv",
@@ -249,17 +265,8 @@ register(
     kwargs={
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.state,
+        "control_type": ControlType.end_effector_right,
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
@@ -276,16 +283,8 @@ register(
     kwargs={
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "q_pos_r",  # joint positions for right arm
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.state,
+        "control_type": ControlType.joints_right,
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
@@ -303,17 +302,9 @@ register(
     kwargs={
         "mjcf_filename": SOLO_ARM_MJCF,
         "urdf_filename": SOLO_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_r",  # right gripper camera
-        ],
-        "act_list": [
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.image,
+        "cam_type": CameraType.head | CameraType.grip_r,
+        "control_type": ControlType.end_effector_right,
         "q_pos_home": Q_SOLO_ARM_HOME,
         "q_dict": Q_SOLO_ARM_HOME_DICT,
         "q_keys": Q_SOLO_ARM_KEYS,
@@ -330,20 +321,8 @@ register(
     kwargs={
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.state,
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
@@ -362,18 +341,8 @@ register(
     kwargs={
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "q_pos_r",  # joint positions for right arm
-            "q_pos_l",  # joint positions for left arm
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.state,
+        "control_type": ControlType.joints_right | ControlType.joints_left,
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
@@ -392,21 +361,9 @@ register(
     kwargs={
         "mjcf_filename": DUAL_ARM_MJCF,
         "urdf_filename": DUAL_ARM_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.image,
+        "cam_type": CameraType.head | CameraType.grip_r | CameraType.grip_l,
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_DUAL_ARM_HOME,
         "q_dict": Q_DUAL_ARM_HOME_DICT,
         "q_keys": Q_DUAL_ARM_KEYS,
@@ -425,20 +382,8 @@ register(
     kwargs={
         "mjcf_filename": TORSO_MJCF,
         "urdf_filename": TORSO_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "cube_pos",  # cube position
-            "cube_orn",  # cube orientation
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.state,
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_TORSO_HOME,
         "q_dict": Q_TORSO_HOME_DICT,
         "q_keys": Q_TORSO_KEYS,
@@ -457,21 +402,9 @@ register(
     kwargs={
         "mjcf_filename": TORSO_MJCF,
         "urdf_filename": TORSO_URDF,
-        "obs_list": [
-            "q_pos",  # joint positions
-            "q_vel",  # joint velocities
-            "camera/head",  # robot head camera
-            "camera/grip_l",  # left gripper camera
-            "camera/grip_r",  # right gripper camera
-        ],
-        "act_list": [
-            "eel_pos",  # left end effector position
-            "eel_orn",  # left end effector orientation
-            "eer_pos",  # right end effector position
-            "eer_orn",  # right end effector orientation
-            "grip_l",  # left gripper
-            "grip_r",  # right gripper
-        ],
+        "obs_type": ObservationType.image,
+        "cam_type": CameraType.head | CameraType.grip_r | CameraType.grip_l,
+        "control_type": ControlType.end_effector_right | ControlType.end_effector_left,
         "q_pos_home": Q_TORSO_HOME,
         "q_dict": Q_TORSO_HOME_DICT,
         "q_keys": Q_TORSO_KEYS,
