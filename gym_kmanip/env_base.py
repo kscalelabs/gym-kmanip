@@ -65,8 +65,6 @@ class KManipEnv(gym.Env):
             cam: k.Cam = k.CAMERAS[cam_name]
             self.cameras.append(cam)
         # optionally log using rerun (viz/debug) or h5py (data)
-        self.log_rerun: bool = log_rerun
-        self.log_h5py: bool = log_h5py
         if log_h5py or log_rerun:
             _log_dir_name: str = "{}.{}.{}".format(
                 log_prefix,
