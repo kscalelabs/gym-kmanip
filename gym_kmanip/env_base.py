@@ -24,7 +24,7 @@ class KManipEnv(gym.Env):
         seed: int = 0,
         render_mode: str = "rgb_array",
         obs_type: k.ObservationType = k.ObservationType.state,
-        cam_list: List[str] = [],
+        cam_type: k.CameraType = None,
         control_type: k.ControlType = None,
         sim: bool = True,
         mjcf_filename: str = k.SOLO_ARM_MJCF,
@@ -61,9 +61,15 @@ class KManipEnv(gym.Env):
         self.ctrl_id_l_grip: NDArray = ctrl_id_l_grip
         # camera properties
         self.cameras: List[k.Cam] = []
-        for cam_name in cam_list:
-            cam: k.Cam = k.CAMERAS[cam_name]
-            self.cameras.append(cam)
+        if cam_type:
+            # In python 3.12, I should be able to iterate the members of current instance (as in the first commented line).
+            # But that doesn't work in 3.10. So I have to enumerate all possible camera 
+            # values and check for their presence in the cam_type flag.
+            # for cam_flag in list(cam_type):
+            for cam_flag in k.CameraType:
+                if cam_flag in cam_type:
+                    cam: k.Cam = k.CAMERAS[cam_flag]
+                    self.cameras.append(cam)
         # optionally log using rerun (viz/debug) or h5py (data)
         if log_h5py or log_rerun:
             _log_dir_name: str = "{}.{}.{}".format(
@@ -202,7 +208,7 @@ class KManipEnv(gym.Env):
 
     def render(self):
         # TODO: when is this actually used?
-        return self.env.k_render(k.CAMERAS["top"])
+        return self.env.k_render(k.CAMERAS[k.CameraType.top])
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
