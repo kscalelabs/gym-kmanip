@@ -13,7 +13,7 @@ class LogRerun(LogBase):
     def __init__(self, log_dir: str):
         super().__init__(log_dir, log_type="rerun")
 
-    def start(self, info: Dict[str, Any]):
+    def reset(self, info: Dict[str, Any]):
         # Blueprint is the GUI layout for ReRun
         time_series_views: List[rrb.SpaceView] = []
         if "q_pos" in info["obs_list"]:
@@ -49,7 +49,7 @@ class LogRerun(LogBase):
         rr.send_blueprint(blueprint=blueprint)
         # TODO: log metadata from info dict
 
-    def initialize_cam(self, cam: k.Cam):
+    def reset_cam(self, cam: k.Cam):
         rr.log(
             f"world/camera/{cam.name}",
             rr.Pinhole(

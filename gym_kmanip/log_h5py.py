@@ -16,7 +16,7 @@ class LogH5py(LogBase):
         super().__init__(log_dir, log_type="h5py")
         self.f: h5py.File = None
 
-    def start(self, info: Dict[str, Any]):
+    def reset(self, info: Dict[str, Any]):
         log_path: str = os.path.join(self.log_dir, f"episode_{info['episode']}.hdf5")
         f = h5py.File(log_path, "w", rdcc_nbytes=k.H5PY_CHUNK_SIZE_BYTES)
         f.attrs["sim"] = info["sim"]
@@ -32,7 +32,7 @@ class LogH5py(LogBase):
         f.create_dataset("action", (k.MAX_EPISODE_STEPS, info["a_len"]))
         self.f = f
 
-    def initialize_cam(self, cam: k.Cam):
+    def reset_cam(self, cam: k.Cam):
         g = self.f.create_group(f"metadata/{cam.log_name}")
         g.attrs["resolution"] = [cam.w, cam.h]
         g.attrs["focal_length"] = cam.fl

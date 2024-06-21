@@ -9,10 +9,10 @@ class LogBase:
         self.log_dir = log_dir
         self.log_type = log_type
 
-    def start(self, info: Dict[str, Any]):
+    def reset(self, info: Dict[str, Any]):
         raise NotImplementedError
     
-    def initialize_cam(self, cam: k.Cam):
+    def reset_cam(self, cam: k.Cam):
         raise NotImplementedError
 
     def step(self,

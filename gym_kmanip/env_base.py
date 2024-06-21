@@ -217,9 +217,9 @@ class KManipEnv(gym.Env):
         self.info["is_success"] = False
         self.info["terminated"] = terminated
         for logger in self.loggers:
-            logger.start(self.info)
+            logger.reset(self.info)
             for cam in self.cameras:
-                logger.initialize_cam(cam)
+                logger.reset_cam(cam)
         return observation, self.info
 
     def step(self, action):
